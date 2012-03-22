@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 #This file is part of numword.  The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
-'''
+"""
 numword for DE
-'''
+"""
 from numword_eu import NumWordEU
 
 #//TODO: Use German error messages
 class NumWordDE(NumWordEU):
-    '''
+    """
     NumWord DE
-    '''
+    """
     def _set_high_numwords(self, high):
-        '''
+        """
         Set high num words
-        '''
+        """
         max = 3 + 6*len(high)
 
         for word, n in zip(high, range(max, 3, -6)):
@@ -22,9 +22,9 @@ class NumWordDE(NumWordEU):
             self.cards[10**(n-3)] = word + u"illion"
 
     def _setup(self):
-        '''
+        """
         Setup
-        '''
+        """
         self.negword = u"minus "
         self.pointword = u"Komma"
         self.errmsg_nonnum = u"Nur Zahlen koennen in Worte konvertiert werden."
@@ -59,9 +59,9 @@ class NumWordDE(NumWordEU):
         self.ordflag = False
 
     def _cardinal_float(self, value):
-        '''
+        """
         Convert float to cardinal
-        '''
+        """
         try:
             assert float(value) == value
         except (ValueError, TypeError, AssertionError):
@@ -79,9 +79,9 @@ class NumWordDE(NumWordEU):
         return number
 
     def _merge(self, curr, next):
-        '''
+        """
         Merge
-        '''
+        """
         ctext, cnum, ntext, nnum = curr + next
         if cnum == 1:
             if nnum == 100 or nnum == 10**3 :
@@ -114,9 +114,9 @@ class NumWordDE(NumWordEU):
         return (word.strip(), val)
 
     def ordinal(self, value):
-        '''
+        """
         Convert to ordinal
-        '''
+        """
         self._verify_ordinal(value)
         self.ordflag = True
         outword = self.cardinal(value)
@@ -128,17 +128,17 @@ class NumWordDE(NumWordEU):
         return outword + u"te"
 
     def ordinal_number(self, value):
-        '''
+        """
         Convert to ordinal number
-        '''
+        """
         self._verify_ordinal(value)
         return str(value) + u"te"
 
     def currency(self, val, longval=True, old=False, hightxt=False, \
         lowtxt=False, space=True):
-        '''
+        """
         Convert to currency
-        '''
+        """
         if old:
             return self._split(val, hightxt=u"Mark", lowtxt=u"Pfennig(e)",
                                     jointxt=u"und",longval=longval)
@@ -171,33 +171,33 @@ class NumWordDE(NumWordEU):
 _NW = NumWordDE()
 
 def cardinal(value):
-    '''
+    """
     Convert to cardinal
-    '''
+    """
     return _NW.cardinal(value)
 
 def ordinal(value):
-    '''
+    """
     Convert to ordinal
-    '''
+    """
     return _NW.ordinal(value)
 
 def ordinal_number(value):
-    '''
+    """
     Convert to ordinal number
-    '''
+    """
     return _NW.ordinal_number(value)
 
 def currency(value, longval=True, old=False):
-    '''
+    """
     Convert to currency
-    '''
+    """
     return _NW.currency(value, longval=longval, old=old)
 
 def year(value):
-    '''
+    """
     Convert to year
-    '''
+    """
     return _NW.year(value)
 
 def main():

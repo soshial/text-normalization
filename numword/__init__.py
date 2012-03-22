@@ -1,9 +1,7 @@
 #This file is part of numword.  The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
-'''
-numword
-'''
-__version__ = '0.4'
+"""numword"""
+__version__ = '0.5beta1'
 
 import locale as _locale
 
@@ -28,33 +26,23 @@ for _module in _MODULES:
 
 try:
     def cardinal(value):
-        '''
-        Convert to cardinal
-        '''
+        """Convert to cardinal"""
         return nwmod.cardinal(value)
 
     def ordinal(value):
-        '''
-        Convert to ordinal
-        '''
+        """Convert to ordinal"""
         return nwmod.ordinal(value)
 
     def ordinal_number(value):
-        '''
-        Convert to ordinal number
-        '''
+        """Convert to ordinal number"""
         return nwmod.ordinal_number(value)
 
     def currency(value, **kwargs):
-        '''
-        Convert to currency
-        '''
+        """Convert to currency"""
         return nwmod.currency(value, **kwargs)
 
     def year(value, **kwargs):
-        '''
-        Convert to year
-        '''
+        """Convert to year"""
         return nwmod.year(value, **kwargs)
 
 except NameError:
