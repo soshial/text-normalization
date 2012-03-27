@@ -1,35 +1,62 @@
 # coding: utf-8
 
+def get_canonical_number_from_string(clean_number_string):
+    """Converting @str into float or long number"""
+    import math,re
+    if re.search("[.,]",clean_number_string) and not math.isnan(float(clean_number_string)) and not math.isinf(float(clean_number_string)):
+        return float(clean_number_string)
+    elif not math.isnan(long(clean_number_string)) and not math.isinf(long(clean_number_string)):
+        return long(clean_number_string)
+    else:
+        raise ValueError
+
 def check_and_convert_into_number(str):
     """This function checks the string for being number and returns spelled numeral in a string"""
-    #converting @str into float or long number
-    import math, re
-    clean_number_string = re.sub("[^\d.-]","",str)
-    if not re.search("\d",str):
+    import re
+    if not re.search("\d",str): # if numbers are not present then we just return the string back
         return str
+    # todo "1982-95" -> "from 1982 to 1995"
+    # todo 4%
+    # todo "13-year-olds"
+    clean_number_string = re.sub("[^\d.-]","",str) # cleaned number with minus, dots etc: # -30 ,.3879 -> -30.3879
     try:
-        if re.search("[.,]",str) and not math.isnan(float(clean_number_string)) and not math.isinf(float(clean_number_string)):
-            return numword_en.cardinal(float(clean_number_string)) # -asg30 ,.3879th -> -30.3879
-        elif not math.isnan(long(clean_number_string)) or not math.isinf(long(clean_number_string)):
-            canonic_number = long(clean_number_string) # -asg30 3879 th -> -303879
-        else:
-            return str
+        canonical_number = get_canonical_number_from_string(clean_number_string) # cleaned number converting into long/float
     except ValueError:
-        return str
-    decades = {"'20s":"twenties","1920s":"twenties","'30s":"thirties","1930s":"thirties","'40s":"fourties","1940s":"fourties",
-               "'50s":"fifties","1950s":"fifties","'60s":"sixties","1960s":"sixties","'70s":"seventies","1970s":"seventies",
-               "'80s":"eighties","1980s":"eighties","'90s":"nineties","1990s":"nineties"}
-    if str in decades:
-        result_words = decades[str]
-    elif str.endswith(("th","rd","nd","st")):
-        result_words = numword_en.ordinal(canonic_number)
-    elif str.endswith(("k")):
-        result_words = numword_en.cardinal(canonic_number*1000)
-    elif str.endswith(("m")):
-        result_words = numword_en.cardinal(canonic_number*1000000)
-    else:
-        result_words = re.sub("[\d.-]+",numword_en.cardinal(canonic_number),str)
-    return result_words
+        logger.info('Problem with processing type of variable (long, float): ' + str + ' -> ' + clean_number_string)
+        return ''
+    # main processing of the word
+    try:
+        decades = {"'20s":"twenties","1920s":"twenties","'30s":"thirties","1930s":"thirties","'40s":"fourties","1940s":"fourties",
+                 "'50s":"fifties","1950s":"fifties","'60s":"sixties","1960s":"sixties","'70s":"seventies","1970s":"seventies",
+                 "'80s":"eighties","1980s":"eighties","'90s":"nineties","1990s":"nineties"}
+        if re.search("^[\d. -]+$",str): # if we have just clean numbers with math symbols or spaces
+            return numword_en.cardinal(canonical_number)
+        elif re.search("^\d+(th|rd|nd|st)$",str):
+            return numword_en.ordinal(canonical_number)
+        elif str in decades:
+            return decades[str]
+        elif re.search("^\d+k$",str):
+            return numword_en.cardinal(canonical_number*1000)
+        elif re.search("^\d+m$",str):
+            return numword_en.cardinal(canonical_number*1000000)
+        else:
+            return re.sub("[\d.-]+",numword_en.cardinal(canonical_number),str)
+    except TypeError, error_message:
+        logger.info('Problem with handling type of number: ' + unicode(error_message) +'___'+ str + ' -> ' + clean_number_string)
+        return ''
+
+def dictionary_check(word):
+    """Checks the word and its variations for being in the dictionary"""
+    # todo support hunspell
+    import re
+    i = 1
+    variants = {re.sub("-","",word).upper(), re.sub(" ","",word).upper()}
+    for letter in word:
+        if i == len(word): break
+        variants.add((word[:i] + ' ' + word[i:]).upper())
+        variants.add((word[:i] + '-' + word[i:]).upper())
+        i += 1
+    return (variants & dictionary)[0]
 
 # initializing logging todo fix log permissions
 import logging
@@ -41,19 +68,36 @@ logger.addHandler(hdlr)
 logger.setLevel(logging.INFO)
 
 # initializing database
-'''
 import MySQLdb
 conn = MySQLdb.connect (host = "192.168.2.101",
     user = "builder",
     passwd = "builderpass",
     db = "builder")
 cursor = conn.cursor ()
-cursor.execute ("SELECT VERSION()")
-row = cursor.fetchone ()
-print "server version:", row[0]
+
+principal_words = {}
+other_words = {}
+cursor.execute ("SELECT word_id, word_spelling, principal FROM word_equivalents WHERE lang = 'en' AND relation = 1 AND principal <> -1")
+while (1):
+    row = cursor.fetchone ()
+    if row == None:
+        break
+    if row[2]: principal_words[int(row[0])] = str(row[1]) # {'advise':'102'}
+    else: other_words[str(row[1])] = int(row[0]) # {'102':'advice'}
+logger.info("Equivalent words imported: %d" % cursor.rowcount)
+
+dictionary = set()
+cursor.execute ("SELECT word FROM en_us")
+while (1):
+    row = cursor.fetchone ()
+    if row == None:
+        break
+    dictionary.add(row[0])
+logger.info("Dictionary entries imported: %d" % cursor.rowcount)
 cursor.close ()
+
 conn.close ()
-'''
+
 
 # processing script arguments
 import sys
@@ -70,7 +114,7 @@ from numword import numword_en
 import glob, os, codecs
 
 import time
-wait = 0.010
+wait = 0.01
 
 # main loop
 while True:
@@ -82,17 +126,20 @@ while True:
         text_in = file_intxt.read() # variable @file_intxt with our text to process
         file_outtxt = codecs.open(path_out + filename_intxt, 'w', 'utf-8-sig') # output file as ./out/_____.out
         sentences = nltk.sent_tokenize(text_in)
-        for sent in sentences:
-            words = nltk.word_tokenize(sent)
+        for sentence_in in sentences:
+            sentence_out = ''; omit = False
+            words = nltk.word_tokenize(sentence_in)
             for word in words:
-                file_outtxt.write(re.sub("[^\w. '-]","",(check_and_convert_into_number(word)+' ').encode('utf-8'))) # todo fix unicode writing into file (now it's substituted with spaces)
-            file_outtxt.write('\n')
+                temp_word = check_and_convert_into_number(word)
+                if temp_word == '':
+                    omit = True
+                    break # if something happens while converting (returns ''), we should omit the sentence
+                else: sentence_out += temp_word + ' '
+            if not omit:
+                file_outtxt.write(re.sub("[^\w\p{L}. '-]","",sentence_out.encode('utf-8')) + '\n') # todo fix unicode writing into file (now it's substituted with spaces)
         file_outtxt.close()
-        file_in2 = codecs.open(path_out + filename_intxt + '.old', 'w', 'utf-8') # saving copy as ./out/_____.txt.old
-        file_in2.write(text_in) # writing it
-        file_in2.close()
-        #os.remove(path_in + filename_intxt) # todo decide where to move the original ./in/_____.txt
         os.remove(fullpath_inmeta) # removing ./in/_____.meta for the loop not to process it again
+        #os.remove(path_in + filename_intxt) # removing original ./in/_____.txt
         file_meta = codecs.open(path_out + fullpath_inmeta.split('/')[-1], 'w', 'utf-8') # creating ./out/_____.meta
         file_meta.close()
     time.sleep(wait)
