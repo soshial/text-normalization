@@ -1,3 +1,4 @@
+# coding: utf-8
 #This file is part of numword.  The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
 """
@@ -24,11 +25,12 @@ class NumWordBase(object):
         self.errmsg_floatord = u"Cannot treat float %s as ordinal."
         self.errmsg_negord = u"Cannot treat negative num %s as ordinal."
         self.errmsg_toobig = u"abs(%s) must be less than %s."
+        self.inflection = None
 
-        self.high_numwords = None
+        self.high_numwords = None # list of words representoing powers of 10³ (e.g. thousands, quadrillions etc.); should all be pregenerated in _set_high_numwords()
         self.mid_numwords = None
         self.low_numwords = None
-        self.ords = None
+        self.ords = None # list of exceptions in generation of ordinals in ordinal()
 
         self._base_setup()
         self._setup()
@@ -110,7 +112,7 @@ class NumWordBase(object):
             return out
 
     def _merge(self, curr, next):
-        """This function regulates the rules of how two adjacent tuples are to be mreged into a word
+        """This function regulates the rules of how two adjacent tuples are to be merged to become a text
         For example:
             (u'three', 3) and (u'hundred', 100) become (u'three hundred',300)
             (u'one', 1) and (u'twenty', 20) become ('twenty',20)
@@ -234,19 +236,20 @@ class NumWordBase(object):
         """
         return value
 
-    def _inflect(self, value, text):
+    def _inflect(self, value, text, secondary = None):
         """
-        Inflect
+        Inflects the additional words of high and low parts, e.g. dollar(s), cent(s)
         """
+        # todo make possible to inflect all the phrase
         text = text.split("/")
         if value == 1:
             return text[0]
         return "".join(text)
 
-    def _split(self, val, hightxt="", lowtxt="", jointxt="",
-                    precision=2, longval=True, space=True):
+    def _split(self, val, hightxt="", lowtxt="", jointxt="", precision=2, longval=True, space=True):
         """This function is for customizing generated strings (e.g. for currency or year)
         Splits the result string with @jointxt 'and' and @precision '2': 'currency is sixteen dollars and forty-five cents'"""
+        # todo make customizable, allowing _split() for usual cardinal
         out = []
         try:
             high, low = val
@@ -256,6 +259,7 @@ class NumWordBase(object):
             #low = int(round((val - high) * (10**precision)))
         print("high, low = ", high, low, jointxt)
         if high:
+            print "high",high,hightxt
             hightxt = self._title(self._inflect(high, hightxt))
             out.append(self.cardinal(high))
             if low:
@@ -269,6 +273,7 @@ class NumWordBase(object):
         if low:
             out.append(self.cardinal(low))
             if lowtxt and longval:
+                print "low",low,lowtxt
                 out.append(self._title(self._inflect(low, lowtxt)))
         if space:
             return " ".join(out)
@@ -291,14 +296,15 @@ class NumWordBase(object):
         """
         Test
         """
-        try:
-            _card = self.cardinal(value)
-        except:
-            _card = u"invalid"
+        _card = self.cardinal(value)
+        print '           for value =',value,'\n          ',_card
+'''
         try:
             _ord = self.ordinal(value)
         except:
             _ord = u"invalid"
+
+
         try:
             _ordnum = self.ordinal_number(value)
         except:
@@ -316,4 +322,4 @@ class NumWordBase(object):
                 "\tordinal number is %s;\n" \
                 "\tcurrency is %s;\n" \
                 "\tyear is %s." %
-                    (value, _card, _ord, _ordnum, _curr, _year))
+                    (value, _card, _ord, _ordnum, _curr, _year))'''

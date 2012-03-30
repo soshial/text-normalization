@@ -1,13 +1,14 @@
+# coding: utf-8
 #This file is part of numword.  The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
 """
 numword for EN
 """
 
-from numword_eu import NumWordEU
+from numword_base import NumWordBase
 
 
-class NumWordEN(NumWordEU):
+class NumWordEN(NumWordBase):
     """
     NumWord EN
     """
@@ -19,6 +20,27 @@ class NumWordEN(NumWordEU):
         max_val = 3 + 3 * len(high)
         for word, i in zip(high, range(max_val, 3, -3)):
             self.cards[10**i] = word + u"illion"
+
+    '''def _set_high_numwords(self, high):
+        max_val = 3 + 6 * len(high)
+
+        for word, i in zip(high, range(max_val, 3, -6)):
+            self.cards[10**i] = word + u"illiard"
+            self.cards[10**(i-3)] = word + u"illion"
+    '''
+
+    def _base_setup(self):
+        """
+        Base setup
+        """
+        lows = [u"non", u"oct", u"sept", u"sext", u"quint", u"quadr", u"tr",
+                u"b", u"m"]
+        units = [u"", u"un", u"duo", u"tre", u"quattuor", u"quin", u"sex",
+                u"sept", u"octo", u"novem"]
+        tens = [u"dec", u"vigint", u"trigint", u"quadragint", u"quinquagint",
+                u"sexagint", u"septuagint", u"octogint", u"nonagint"]
+        self.high_numwords = [u"cent"] + self._gen_high_numwords(units, tens, lows)
+
 
     def _setup(self):
         """
@@ -51,17 +73,17 @@ class NumWordEN(NumWordEU):
         """
         Merge
         """
-        ctext, cnum, ntext, nnum = curr + next
-
-        if cnum == 1 and nnum < 100:
-            return next
-        elif 100 > cnum > nnum :
-            return (u"%s-%s" % (ctext, ntext), cnum + nnum)
-        elif cnum >= 100 > nnum:
-            return (u"%s and %s" % (ctext, ntext), cnum + nnum)
-        elif nnum > cnum:
-            return (u"%s %s" % (ctext, ntext), cnum * nnum)
-        return (u"%s, %s" % (ctext, ntext), cnum + nnum)
+        curr_text, curr_num, next_text, next_num = curr + next
+        print curr_text, curr_num, next_text, next_num
+        if curr_num == 1 and next_num < 100:
+            return next # everything less than 100 doesn't need a prefix 'one'
+        elif 100 > curr_num > next_num :
+            return u"%s-%s" % (curr_text, next_text), curr_num + next_num
+        elif curr_num >= 100 > next_num:
+            return u"%s and %s" % (curr_text, next_text), curr_num + next_num
+        elif next_num > curr_num:
+            return u"%s %s" % (curr_text, next_text), curr_num * next_num
+        return u"%s, %s" % (curr_text, next_text), curr_num + next_num
 
 
     def ordinal(self, value):
@@ -170,8 +192,8 @@ def main():
                "'80s":"eighties","1980s":"eighties","'90s":"nineties","1990s":"nineties"}
     if "1980s" in decades:
         print(decades[str])'''
-
-    for val in [ 1998, 11, 12, 21, 31, 33, 71, 80, 81, 91, 99, 100, 101, 102, 120, 155,
+    # todo For 19.98, cardinal is twenty point two;
+    for val in [ 19.98, 11, 12, 21, 31, 33, 71, 80, 81, 91, 99, 100, 101, 102, 120, 155,
              180, 300, 308, 832, 1000, 1001, 1061, 1100, 1120, 1500, 1701, 1800,
              2000, 2010, 2099, 2171, 3000, 8280, 8291, 150000, 500000, 1000000,
              2000000, 2000001, -21212121211221211111, -2.121212, -1.0000100,
