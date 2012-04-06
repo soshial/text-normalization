@@ -1,9 +1,9 @@
 # coding: utf-8
 #This file is part of numword.  The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
-"""
-numword for DE
-"""
+
+"""numword for German language"""
+
 from numword_eu import NumWordEU
 
 #//TODO: Use German error messages
@@ -74,7 +74,7 @@ class NumWordDE(NumWordEU):
 
             decimal = int(round(post * (10**self.precision)))
             for digit in tuple([x for x in str(decimal)]):
-                out.append(str(self.cardinal(int(digit))))
+                out.append(unicode(self.cardinal(int(digit))))
                 number = " ".join(out)
         return number
 
@@ -132,7 +132,7 @@ class NumWordDE(NumWordEU):
         Convert to ordinal number
         """
         self._verify_ordinal(value)
-        return str(value) + u"te"
+        return unicode(value) + u"te"
 
     def currency(self, val, longval=True, old=False, hightxt=False, \
         lowtxt=False, space=True):
@@ -201,185 +201,7 @@ def year(value):
     return _NW.year(value)
 
 def main():
-    test_cardinals = [
-            [-1.0000100, u"minus eins Komma null"],
-            [1.11, u"eins Komma eins eins"],
-            [1, u"eins"],
-            [11, u"elf"],
-            [12, u"zwölf"],
-            [21, u"einundzwanzig"],
-            [29, u"neunundzwanzig"],
-            [30, u"dreißig"],
-            [31, u"einunddreißig"],
-            [33, u"dreiunddreißig"],
-            [71, u"einundsiebzig"],
-            [80, u"achtzig"],
-            [81, u"einundachtzig"],
-            [91, u"einundneunzig"],
-            [99, u"neunundneunzig"],
-            [100, u"einhundert"],
-            [101, u"einhunderteins"],
-            [102, u"einhundertzwei"],
-            [151, u"einhunderteinundfünfzig"],
-            [155, u"einhundertfünfundfünfzig"],
-            [161, u"einhunderteinundsechzig"],
-            [180, u"einhundertachtzig"],
-            [300, u"dreihundert"],
-            [301, u"dreihunderteins"],
-            [308, u"dreihundertacht"],
-            [832, u"achthundertzweiunddreißig"],
-            [1000, u"eintausend"],
-            [1001, u"eintausendeins"],
-            [1061, u"eintausendeinundsechzig"],
-            [1100, u"eintausendeinhundert"],
-            [1111, u"eintausendeinhundertelf"],
-            [1500, u"eintausendfünfhundert"],
-            [1701, u"eintausendsiebenhunderteins"],
-            [3000, u"dreitausend"],
-            [8280, u"achttausendzweihundertachtzig"],
-            [8291, u"achttausendzweihunderteinundneunzig"],
-            [10100, u"zehntausendeinhundert"],
-            [10101, u"zehntausendeinhunderteins"],
-            [10099, u"zehntausendneunundneunzig"],
-            [12000, u"zwölftausend"],
-            [150000, u"einhundertfünfzigtausend"],
-            [500000, u"fünfhunderttausend"],
-            [1000000, u"eine Million"],
-            [1000100, u"eine Million einhundert"],
-            [1000199, u"eine Million einhundertneunundneunzig"],
-            [2000000, u"zwei Millionen"],
-            [2000001, u"zwei Millionen eins"],
-            [1000000000, u"eine Milliarde"],
-            [2147483647, u"zwei Milliarden einhundertsiebenundvierzig"
-             u" Millionen vierhundertdreiundachtzigtausend"
-             u"sechshundertsiebenundvierzig"],
-            [23000000000, u"dreiundzwanzig Milliarden"],
-            [126000000000001, u"einhundertsechsundzwanzig Billionen eins"],
-            [-121211221211111 , u"minus "\
-            u"einhunderteinundzwanzig Billionen "\
-            u"zweihundertelf Milliarden zweihunderteinundzwanzig Millionen "\
-            u"zweihundertelftausendeinhundertelf"],
-            [1000000000000000, u"eine Billiarde"],
-            [256000000000000000, u"zweihundertsechsundfünfzig Billiarden"],
-            # I know the next is wrong! but what to do?
-            [-2.12, u"minus zwei Komma eins zwei"],
-            [7401196841564901869874093974498574336000000000, u"sieben Septil"
-             u"liarden vierhunderteins Septillionen einhundertsechsundneunzig S"
-             u"extilliarden achthunderteinundvierzig Sextillionen fünfhundertvi"
-             u"erundsechzig Quintilliarden neunhunderteins Quintillionen achthu"
-             u"ndertneunundsechzig Quadrilliarden achthundertvierundsiebzig Qua"
-             u"drillionen dreiundneunzig Trilliarden neunhundertvierundsiebzig "
-             u"Trillionen vierhundertachtundneunzig Billiarden fünfhundertvieru"
-             u"ndsiebzig Billionen dreihundertsechsunddreißig Milliarden"],
-            ]
-    i = 1
-    for number, word in test_cardinals:
-        try:
-            assert word == cardinal(number)
-            i += 1
-        except AssertionError:
-            print "Failed:'%s' != '%s' != '%s'" % \
-                (number, cardinal(number), word)
-            raise AssertionError, "At least one test failed!" \
-                " (Test no. %s of %s)" % (i, len(test_cardinals))
-    print "All %s tests for cardinal numbers successfully passed." \
-        % (len(test_cardinals))
-
-    test_years = [
-            # Watch out, negative years are broken!
-            [0, u"null"],
-            [33, u"dreiunddreißig"],
-            [150, u"einhundertfünfzig"],
-            [160, u"einhundertsechzig"],
-            [1130, u"elfhundertdreißig"],
-            [1999, u"neunzehnhundertneunundneunzig"],
-            [1984, u"neunzehnhundertvierundachtzig"],
-            [2000, u"zweitausend"],
-            [2001, u"zweitausendeins"],
-            [2010, u"zweitausendzehn"],
-            [2012, u"zweitausendzwölf"],
-    ]
-    i = 1
-    for number, word in test_years:
-        try:
-            assert word == year(number)
-        except AssertionError:
-            print "Failed:'%s' != '%s' != '%s'" % \
-                (number, year(number), word)
-            raise AssertionError, "At least one test failed!" \
-                " (Test no. %s of %s)" % (i, len(test_years))
-    print "All %s tests for year numbers successfully passed." \
-        % (len(test_years))
-
-
-    test_currency =  [
-            [12222, u"einhundertzweiundzwanzig Euro und zweiundzwanzig Cent"],
-            [123322, u"eintausendzweihundertdreiunddreißig Euro und zweiundzwanzig Cent"],
-            [686412, u"sechstausendachthundertvierundsechzig Euro und zwölf Cent"],
-            [84, u"vierundachtzig Cent"],
-            [1, u"ein Cent"],
-    ]
-    i = 1
-    for number, word in test_currency:
-        try:
-            assert word == currency(number)
-        except AssertionError:
-            print "Failed:'%s' != '%s' != '%s'" % \
-                (number, currency(number), word)
-            raise AssertionError, "At least one test failed!" \
-                " (Test no. %s of %s)" % (i, len(test_currency))
-    print "All %s tests for currency numbers successfully passed." \
-        % (len(test_currency))
-
-    test_ordinal =  [
-            [1, u"erste"],
-            [3, u"dritte"],
-            [11, u"elfte"],
-            [12, u"zwölfte"],
-            [21, u"einundzwanzigste"],
-            [29, u"neunundzwanzigste"],
-            [30, u"dreißigste"],
-            [31, u"einunddreißigste"],
-            [33, u"dreiunddreißigste"],
-            [71, u"einundsiebzigste"],
-            [80, u"achtzigste"],
-            [81, u"einundachtzigste"],
-            [91, u"einundneunzigste"],
-            [99, u"neunundneunzigste"],
-            [100, u"einhundertste"],
-            [101, u"einhunderterste"],
-            [102, u"einhundertzweite"],
-            [151, u"einhunderteinundfünfzigste"],
-            [155, u"einhundertfünfundfünfzigste"],
-            [161, u"einhunderteinundsechzigste"],
-            [180, u"einhundertachtzigste"],
-            [300, u"dreihundertste"],
-            [301, u"dreihunderterste"],
-            [308, u"dreihundertachte"],
-            [832, u"achthundertzweiunddreißigste"],
-            [1000, u"eintausendste"],
-            [1001, u"eintausenderste"],
-            [1061, u"eintausendeinundsechzigste"],
-            [2000001, u"zwei Millionen erste"],
-            # The following is broken
-            #[1000000000, "eine Milliardeste"],
-            [2147483647, u"zwei Milliarden einhundertsiebenundvierzig"
-             u" Millionen vierhundertdreiundachtzigtausend"
-             u"sechshundertsiebenundvierzigste"],
-
-    ]
-    i = 1
-    for number, word in test_ordinal:
-        try:
-            assert word == ordinal(number)
-        except AssertionError:
-            print "Failed:'%s' != '%s' != '%s'" % \
-                (number, ordinal(number), word)
-            raise AssertionError, "At least one test failed!" \
-                " (Test no. %s of %s)" % (i, len(test_ordinal))
-    print "All %s tests for ordinal numbers successfully passed." \
-        % (len(test_ordinal))
-
+    pass
 
 if __name__ == "__main__":
     main()

@@ -1,42 +1,40 @@
 # coding: utf-8
 #This file is part of numword.  The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
-"""
-numword for RU
-"""
+
+"""numword for Russian language"""
+
+# materials used:
+# * http://www.gramota.ru/class/coach/tbgramota/45_110
+# * http://www.gramota.ru/spravka/letters/?rub=rubric_92
 
 from numword_base import NumWordBase
 
 
 class NumWordRU(NumWordBase):
-    """
-    NumWord RU
-    """
+    """NumWord RU"""
 
     def __init__(self):
         super(NumWordRU,self).__init__()
+        # initializing morphology module for inflecting
         from pymorphy import get_morph
         self.morph = get_morph('./dicts/converted/ru/')
-        self.inflection_case = u"рд" # todo add 'жр'
-        #word = u'Вася'.upper()
-        #print self.morph.get_graminfo(word)[0]
-        #print self.morph.inflect_ru(u'БУТЯВКА', u'дт,мн')
-        #quit()
+        self.inflection_case = u"тв" # todo add 'жр' for the ending of numeral
 
     def _set_high_numwords(self, high):
-        """
-        Set high num words
-        """
+        """Sets high num words"""
         max_val = 3 + 3 * len(high)
         for word, i in zip(high, range(max_val, 3, -3)):
-            self.cards[10**i] = word + u"иллион"
+            if 10**i == 1000000000: self.cards[1000000000] = u"миллиард"; continue
+            self.cards[10**i] = word + u"иллион" # Only the short scale of naming numbers is used In Russia
 
 
     def _base_setup(self):
         """Base setup"""
+        # 10**33..10**6
         lows = [u"нон", u"окт", u"септ", u"секст", u"квинт", u"квадр", u"тр",
-                u"миллиард", u"м"] # todo поправить миллиард и другие
-        units = [u"", u"ун", u"доде", u"тре", u"кваттуор", u"квин", u"се",
+                u"б", u"м"] # todo fix ultra-high numwords
+        units = [u"", u"ун", u"дуо", u"тре", u"кваттуор", u"квин", u"секс",
                 u"септ", u"окто", u"новем"]
         tens = [u"дец", u"вигинт", u"тригинт", u"квагинт", u"квинквагинт",
                 u"сексагинт", u"септагинт", u"октогинт", u"нонагинт"]
@@ -48,7 +46,7 @@ class NumWordRU(NumWordBase):
         Setup
         """
         self.negword = u"минус "
-        self.pointword = u"point"
+        self.pointword = u"целых и"
         self.errmsg_nonnum = "Only numbers may be converted to words."
         self.exclude_title = [u"and", u"point", u"minus"]
 
@@ -66,7 +64,17 @@ class NumWordRU(NumWordBase):
                 u"два": u"второй",
                 u"три": u"третий",
                 u"четыре": u"четвёртый",
+                u"шесть": u"шестой",
                 u"семь": u"седьмой",
+                u"восемь": u"восьмой",
+                u"восемьдесят": u"восьмидесятый",
+                u"сорок": u"сороковой",
+                u"девяносто": u"девяностый",
+                u"сто": u"сотый",
+                u"двести": u"двухсотый",
+                u"триста": u"трёхсотый",
+                u"четыреста": u"четырёхсотый",
+                u"восемьсот": u"восьмисотый",
                 u"тысяча": u"тысячный",
                 }
 
@@ -84,9 +92,15 @@ class NumWordRU(NumWordBase):
             #return u"%s %s" % (self._inflect(curr_numb,curr_text,next), next_text), curr_numb + next_numb
             return u"%s %s" % (curr_text, next_text), curr_numb + next_numb
         elif next_numb > curr_numb:
-            # case for number 671000 is 1000 > 671
-            #print "merge ne > cu", next_numb, curr_numb
-            return u"%s %s" % (' '.join(curr_text.split(' ')[:-1]) + ' ' + self._inflect(curr_numb % 10, curr_text.split(' ')[-1],next), # in Russian only the last digit depends on high numwords
+            # case for number '671000': '1000' > '671'
+            # todo make without tam-tams
+            if len(curr_text.split(' ')) < 2: whitespace = ''
+            else: whitespace = ' '
+
+            if curr_numb == 1: # in Russian if it is only a power of 1000, then we don't need to use 'один' here
+                return self._inflect(next_numb,next_text,curr), next_numb
+            else:
+                return u"%s %s" % (' '.join(curr_text.split(' ')[:-1]) + whitespace + self._inflect(curr_numb % 10, curr_text.split(' ')[-1],next), # in Russian only the last digit depends on high numwords
                                self._inflect(next_numb,next_text,curr)), curr_numb * next_numb # we don't need to inflect current because it was or would be already inflected
         else:
             #print "merge_other: ", next_numb, curr_numb
@@ -94,21 +108,43 @@ class NumWordRU(NumWordBase):
 
 
     def ordinal(self, value):
-        """
-        Convert to ordinal
-        """
+        """Convert to ordinal"""
+        # first we need the nominativus case
         self._verify_ordinal(value)
+
+        temp_inflection = self.inflection_case
+        self.inflection_case = u"им"
         outwords = self.cardinal(value).split(" ")
-        lastwords = outwords[-1].split("-")
-        lastword = lastwords[-1].lower()
+        self.inflection_case = temp_inflection # we put the needed case back
+        lastword = outwords[-1].lower()
         try:
             lastword = self.ords[lastword]
         except KeyError:
-            if lastword[-1] == u"y":
-                lastword = lastword[:-1] + u"ie"
-            lastword += u"th"
-        lastwords[-1] = self._title(lastword)
-        outwords[-1] = u"-".join(lastwords)
+            import re
+            if lastword[-2:] == u"ть":
+                lastword = lastword[:-2] + u"тый"
+            elif lastword[-4:] == u"ьсот":
+                lastword = lastword[:-4] + u"исотый"
+            elif lastword[-6:] == u"ьдесят":
+                lastword = lastword[:-6] + u"идесятый"
+            elif re.search(u'(иллиона?(ов)?|ллиарда?(ов)?|ысяч(а|и)?)$',lastword):
+                wo_zeros = long(re.sub(u"(000)*$","",unicode(value))) # 19 250 000 000 -> 19 250
+                first = long(wo_zeros / 1000) # 19
+                second = wo_zeros % 1000 # 250
+                zeroes = long(value / wo_zeros) # 1 000 000
+                lastword = re.sub(u'(иллион|ллиард|ысяч)(ов|а|и)?$',u'\\1ный',lastword)
+                print lastword, first * zeroes * 1000, second
+                if second != 1:
+                    outwords2_str = u""
+                    temp_inflection = self.inflection_case
+                    self.inflection_case = u"им"
+                    if first: outwords2_str = self.cardinal(first * zeroes * 1000) + ' '
+                    self.inflection_case = temp_inflection # we put the needed case back
+                    for sec_part in self.cardinal(second).split(' '):
+                        if sec_part.lower() == u"один": outwords2_str += u"одно"; continue # 51 000 -> пятидесятиоднотысячный
+                        outwords2_str += self.morph.inflect_ru(sec_part.upper(),u"рд").lower()
+                    return outwords2_str + self.morph.inflect_ru(lastword.upper(),self.inflection_case).lower()
+        outwords[-1] = self._title(self.morph.inflect_ru(lastword.upper(),self.inflection_case).lower())
         return " ".join(outwords)
 
 
@@ -151,7 +187,7 @@ class NumWordRU(NumWordBase):
                 intersection = ",".join(list(gr_gender & # here we compute intersection between @gr_gender and set of grammar info of secondary
                                              set(self.morph.get_graminfo(sec_text.upper())[0]['info'].split(',')))) # and return the string again
                 if intersection == '':
-                    print "### intersection void: ",value,sec_text,"___",self.morph.get_graminfo(sec_text.upper())[0]['info'];quit()
+                    #print "### intersection void: ",value,sec_text,"___",self.morph.get_graminfo(sec_text.upper())[0]['info'];quit()
                     return self.morph.inflect_ru(text.upper(),self.morph.get_graminfo(sec_text.upper())[0]['info']).lower()
                 else:
                     return self.morph.inflect_ru(text.upper(), intersection).lower()
@@ -167,7 +203,7 @@ class NumWordRU(NumWordBase):
 
         else:
             #print '@ne-imenit@@'
-            print 'value  ', text, value, '\t\t\tsec___', sec_numb
+            #print 'value  ', text, value, '\t\t\tsec___', sec_numb
             if False:
                 # numerals take @gr_gender from thousands, millions etc. (@sec_text)
                 #intersection = ",".join(list(gr_gender & # here we compute intersection between @gr_gender and set of grammar info of secondary
@@ -194,6 +230,7 @@ class NumWordRU(NumWordBase):
                     return self.morph.inflect_ru(text.upper(),self.morph.get_graminfo(sec_text.upper())[0]['info']).lower()
                 else:
                     return self.morph.inflect_ru(text.upper(), intersection).lower()
+                # todo тысяча в творительном падеже склоняется по разному, если существительное и если числительное http://www.gramota.ru/spravka/letters/?rub=rubric_92
                 #else: #quit("sec"+str(sec_numb)+self.morph.inflect_ru(text.upper(),self.inflection_case).lower())
                     #quit('DDIEEE!! #2')
                     #return self.morph.inflect_ru(text.upper(),self.inflection_case).lower()
@@ -239,46 +276,16 @@ def year(value, longval=True):
 
 def main():
     """Main program"""
-    '''def check_and_convert_into_number(str):
-        #converting @str into float or long number
-        import math
-        try:
-            if re.search("[.,]",str) and not math.isnan(float(str)) or not math.isinf(float(str)):
-                return numword_en.cardinal(float(re.sub("[^\d.-]","",str))) # -asg30 ,.3879th -> -30.3879
-            elif not math.isnan(long(str)) or not math.isinf(long(str)):
-                canonic_number = long(re.sub("[^\d-]","",str)) # -asg30 3879 th -> -303879
-            else:
-                return False
-        except ValueError:
-            return False
-        if str.endswith(("th","rd","nd","st")):
-            result_words = ordinal(canonic_number)
-        elif str.endswith(("k")):
-            result_words = cardinal(canonic_number*1000)
-        elif str.endswith(("m")):
-            result_words = cardinal(canonic_number*1000000)
-        else:
-            result_words = re.sub("[\d.-]+",cardinal(canonic_number),str)
-        return result_words
-    import re
-
-    # todo dates "1980s", "'80s" -> eighties
-    decades = {"'20s":"twenties","1920s":"twenties","'30s":"thirties","1930s":"thirties","'40s":"fourties","1940s":"fourties",
-               "'50s":"fifties","1950s":"fifties","'60s":"sixties","1960s":"sixties","'70s":"seventies","1970s":"seventies",
-               "'80s":"eighties","1980s":"eighties","'90s":"nineties","1990s":"nineties"}
-    if "1980s" in decades:
-        print(decades[str])'''
-
-    for val in [ 255420650,
-                  #421650,
-     220144,
-                 311671000, 12, 21, 31, 33, 71, 80, 81, 91, 99, 100, 101, 102, 120, 155,
+    _NW.test_array()
+    quit()
+    for val in [
+             0,''' 4, 12, 21, 31, 33, 71, 80, 81, 91, 99, 100, 101, 102, 120, 155,
              180, 300, 308, 832, 1000, 1001, 1061, 1100, 1120, 1500, 1701, 1800,
-             2000, 2010, 2099, 2171, 3000, 8280, 8291, 150000, 500000, 1000000,
+             255421650, 420650, 220144, 311671000,2000, 2010, 2099, 2171, 3000, 8280, 8291, 150000, 500000, 1000000,
              2000000, 2000001, -21212121211221211111, -2.121212, -1.0000100,
-             1325325436067876801768700107601001012212132143210473207540327057320957032975032975093275093275093270957329057320975093272950730]:
-        _NW.test(val)
-        quit()
+             1325325436067876801768700107601001012212132143210473207540327057320957032975032975093275093275093270957329057320975093272950730''']:
+        _NW.test(val,True)
+        #quit()
 
 if __name__ == "__main__":
     main()
