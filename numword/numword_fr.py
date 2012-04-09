@@ -1,9 +1,8 @@
 # coding: utf-8
 #This file is part of numword.  The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
-'''
-numword for FR
-'''
+
+"""numword for FR"""
 
 from numword_eu import NumWordEU
 
@@ -77,7 +76,7 @@ class NumWordFR(NumWordEU):
         Convert to ordinal number
         '''
         self._verify_ordinal(value)
-        out = str(value)
+        out = unicode(value)
         out +=  {"1" : u"er" }.get(out[-1], u"me")
         return out
 

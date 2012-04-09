@@ -19,7 +19,7 @@ class NumWordRU(NumWordBase):
         # initializing morphology module for inflecting
         from pymorphy import get_morph
         self.morph = get_morph('./dicts/converted/ru/')
-        self.inflection_case = u"тв" # todo add 'жр' for the ending of numeral
+        self.inflection_case = u"им" # todo add gender for the ending of numeral ('жр')
 
     def _set_high_numwords(self, high):
         """Sets high num words"""
@@ -46,7 +46,7 @@ class NumWordRU(NumWordBase):
         Setup
         """
         self.negword = u"минус "
-        self.pointword = u"целых и"
+        self.pointword = [u"целая", u"десятая", u"сотая", u"тысячная"]
         self.errmsg_nonnum = "Only numbers may be converted to words."
         self.exclude_title = [u"and", u"point", u"minus"]
 
@@ -106,6 +106,25 @@ class NumWordRU(NumWordBase):
             #print "merge_other: ", next_numb, curr_numb
             return u"%s %s" % (curr_text, next_text), curr_numb + next_numb
 
+    def _cardinal_float(self, value):
+        # todo сделать так, чтобы сами числительные по родам согласовывались: "две сотых, одна целая"
+        try:
+            assert float(value) == value
+        except (ValueError, TypeError, AssertionError):
+            raise TypeError(self.errmsg_nonnum % value)
+        import math
+        pre = long(math.trunc(value))
+        post = abs(value - pre)
+        out = [self.cardinal(pre)]
+        if self.precision:
+            if 11 <= pre % 100 <= 19 or 5 <= pre % 10 or pre % 10 == 0: out.append(self.morph.inflect_ru(self.pointword[0].upper(),u"мн,рд").lower())
+            else: out.append(self.morph.inflect_ru(self.pointword[0].upper(),u"ед,жр" + self.inflection_case).lower())
+            decimal = int(round(post * (10**self.precision)))
+            out.append(unicode(self.cardinal(decimal)))
+            ending = math.trunc(math.log(decimal,10))+1 # 925 -> trunc(2.91) + 1 = 3
+            if 11 <= decimal % 100 <= 19 or 5 <= decimal % 10 or decimal % 10 == 0: out.append(self.morph.inflect_ru(self.pointword[ending].upper(),u"мн,рд").lower())
+            else: out.append(self.morph.inflect_ru(self.pointword[ending].upper(),u"ед,жр" + self.inflection_case).lower())
+        return out
 
     def ordinal(self, value):
         """Convert to ordinal"""

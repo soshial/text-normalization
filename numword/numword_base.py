@@ -1,13 +1,11 @@
 # coding: utf-8
-#This file is part of numword.  The COPYRIGHT file at the top level of
-#this repository contains the full copyright notices and license terms.
-"""
-numword base
-"""
+# This file is part of numword.
+# The COPYRIGHT file at the top level of this repository contains the full copyright notices and license terms.
+# This file also contains some comments that will help you with extending, fixing or just understanding the module
+
+"""numword base class"""
 
 from orderedmapping import OrderedMapping
-
-import traceback
 
 class NumWordBase(object):
     """
@@ -18,18 +16,18 @@ class NumWordBase(object):
         self.cards = OrderedMapping() # ordered list of numeral words
         self.is_title = False
         self.precision = 2
-        self.exclude_title = []
+        self.exclude_title = [] # words that should be excluded from making "Title Case" in using _title() function
         self.negword = u"(-) "
         self.pointword = u"(.)"
         self.errmsg_nonnum = u"type(%s) not in [long, int, float]"
         self.errmsg_floatord = u"Cannot treat float %s as ordinal."
-        self.errmsg_negord = u"Cannot treat negative num %s as ordinal."
+        self.errmsg_negord = u"Cannot treat negative number %s as ordinal."
         self.errmsg_toobig = u"abs(%s) must be less than %s."
         self.inflection = None
 
-        self.high_numwords = None # list of words representoing powers of 10³ (e.g. thousands, quadrillions etc.); should all be pregenerated in _set_high_numwords()
-        self.mid_numwords = None
-        self.low_numwords = None
+        self.high_numwords = None # list of words representing powers of 10³ (e.g. thousands, quadrillions etc.); should all be pregenerated in _set_high_numwords()
+        self.mid_numwords = None # dictionary of numbers and their respecting numwords
+        self.low_numwords = None # list of lowest numwords without omission ascending starting from zero
         self.ords = None # list of exceptions in generation of ordinals in ordinal()
 
         self._base_setup()
@@ -39,20 +37,16 @@ class NumWordBase(object):
         self.maxval = 1000 * self.cards.order[0] # maximum value able to convert
 
     def _base_setup(self):
-        """
-        Base Setup
-        """
+        """Base Setup; may be used for doing anything before main setup()"""
         pass
 
     def _setup(self):
-        """
-        Setup
-        """
+        """Setting up all needed variables like @negword or @pointword"""
         pass
 
     def _set_numwords(self):
         """
-        Set word equivalents for numbers
+        The function sets word equivalents for numbers: hign, middle and low
         """
         self._set_high_numwords(self.high_numwords)
         self._set_mid_numwords(self.mid_numwords)
@@ -144,9 +138,7 @@ class NumWordBase(object):
         return out[0]
 
     def _title(self, value):
-        """
-        Return title
-        """
+        """Capitalizes the result excluding @self.exclude_title"""
         if self.is_title:
             out = []
             value = value.split()
@@ -159,13 +151,12 @@ class NumWordBase(object):
         return value
 
     def _verify_ordinal(self, value):
-        """
-        Verify ordinal
-        """
+        """Verifies numword whether it can be an ordinal (not negative, not float)"""
+        # todo str or int?
         if not value == long(value):
             raise TypeError, self.errmsg_floatord % (value)
         if not abs(value) == value:
-            raise TypeError, self.errmsg_negord % (value) # todo doesn't work!
+            raise TypeError, self.errmsg_negord % (value)
 
     def _verify_num(self, value):
         """
@@ -188,18 +179,22 @@ class NumWordBase(object):
             assert float(value) == value
         except (ValueError, TypeError, AssertionError):
             raise TypeError(self.errmsg_nonnum % value)
-
-        pre = int(round(value))
+        import math
+        pre = long(math.trunc(value))
         post = abs(value - pre)
-
+        # todo precision fix!
         out = [self.cardinal(pre)]
         if self.precision:
-            out.append(self._title(self.pointword))
-
             decimal = int(round(post * (10**self.precision)))
-            out.append(str(self.cardinal(decimal)))
-
-        return " ".join(out)
+            if not isinstance(self.pointword, list):
+                out.append(self._title(self.pointword))
+                out.append(unicode(self.cardinal(decimal)))
+            else:
+                out.append(self._title(self.pointword[0]))
+                out.append(unicode(self.cardinal(decimal)))
+                ending = math.trunc(math.log(decimal,10))+1 # 925 -> trunc(2.91) + 1 = 3
+                out.append(self._title(self.pointword[ending]))
+        return out
 
     def cardinal(self, value):
         """
@@ -208,7 +203,7 @@ class NumWordBase(object):
         try:
             assert long(value) == value
         except (ValueError, TypeError, AssertionError):
-            return self._cardinal_float(value)
+            return " ".join(self._cardinal_float(value))
 
         self._verify_num(value)
 
@@ -231,10 +226,8 @@ class NumWordBase(object):
         return self.cardinal(value)
 
     def ordinal_number(self, value):
-        """
-        Convert to ordinal number
-        """
-        return value
+        """Convert to ordinal number (5th, 21st etc.)"""
+        pass
 
     def _inflect(self, value, text, secondary = None):
         """
@@ -257,9 +250,7 @@ class NumWordBase(object):
             high, low = divmod(val, (10**precision))
             #high = int(val)
             #low = int(round((val - high) * (10**precision)))
-        print("high, low = ", high, low, jointxt)
         if high:
-            print "high",high,hightxt
             hightxt = self._title(self._inflect(high, hightxt))
             out.append(self.cardinal(high))
             if low:
@@ -273,7 +264,6 @@ class NumWordBase(object):
         if low:
             out.append(self.cardinal(low))
             if lowtxt and longval:
-                print "low",low,lowtxt
                 out.append(self._title(self._inflect(low, lowtxt)))
         if space:
             return " ".join(out)
@@ -292,19 +282,16 @@ class NumWordBase(object):
         """
         return self.cardinal(value)
 
-    def test(self, value):
-        """
-        Test
-        """
-        _card = self.cardinal(value)
-        print '           for value =',value,'\n          ',_card
-'''
+    def test(self,value,make_test_arrays = False):
+        """Test function for manual testing in output; very simple"""
+        try:
+            _card = self.cardinal(value)
+        except:
+            _card = u"invalid"
         try:
             _ord = self.ordinal(value)
         except:
             _ord = u"invalid"
-
-
         try:
             _ordnum = self.ordinal_number(value)
         except:
@@ -317,9 +304,18 @@ class NumWordBase(object):
             _year = self.year(value)
         except:
             _year = u"invalid"
-        print (u"For %s, cardinal is %s;\n" \
-                "\tordinal is %s;\n" \
-                "\tordinal number is %s;\n" \
-                "\tcurrency is %s;\n" \
-                "\tyear is %s." %
-                    (value, _card, _ord, _ordnum, _curr, _year))'''
+        print (u"For %s, cardinal is %s;\n\tordinal is %s;\n\tordinal number is %s;\n\tcurrency is %s;\n\tyear is %s." %
+                    (value, _card, _ord, _ordnum, _curr, _year))
+
+    def test_array(self):
+        """"""
+        for val in [-4.121212, -1.0000100,1051000000,
+            0, 1, 2,3, 4, 5,6,7,8,9,10,12, 20,21, 30,31, 33,40,50,60, 70,71, 80, 81, 90,91, 99, 100, 200,300,400,500,600,700,800,900,78,
+            180, 300, 308, 832, 1000, 1001, 1061, 1100, 1120, 1500, 1701, 1800,
+            2000, 2010, 2099, 2171, 4000, 8280, 8291, 150000, 220144, 420650,
+            500000, 1000000, 2000000, 20000001, 255421650, 399670900, 90311671002, -21212121211221211111,
+
+
+            #1325325436067876801768700107601001012212132143210473207540327057320957032975032975093275093275093270957329057320975093272950730
+        ]:
+            print '['+str(val)+',u\''+self.cardinal(val)+'\'],';quit()

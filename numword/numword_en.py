@@ -1,12 +1,10 @@
 # coding: utf-8
 #This file is part of numword.  The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
-"""
-numword for EN
-"""
+
+"""numword for English language"""
 
 from numword_base import NumWordBase
-
 
 class NumWordEN(NumWordBase):
     """
@@ -17,11 +15,12 @@ class NumWordEN(NumWordBase):
         """
         Set high num words
         """
+        # short scale
         max_val = 3 + 3 * len(high)
         for word, i in zip(high, range(max_val, 3, -3)):
             self.cards[10**i] = word + u"illion"
 
-    '''def _set_high_numwords(self, high):
+    ''' # long scale
         max_val = 3 + 6 * len(high)
 
         for word, i in zip(high, range(max_val, 3, -6)):
@@ -74,7 +73,6 @@ class NumWordEN(NumWordBase):
         Merge
         """
         curr_text, curr_num, next_text, next_num = curr + next
-        print curr_text, curr_num, next_text, next_num
         if curr_num == 1 and next_num < 100:
             return next # everything less than 100 doesn't need a prefix 'one'
         elif 100 > curr_num > next_num :
@@ -163,43 +161,13 @@ def year(value, longval=True):
 
 def main():
     """Main program"""
-    '''def check_and_convert_into_number(str):
-        #converting @str into float or long number
-        import math
-        try:
-            if re.search("[.,]",str) and not math.isnan(float(str)) or not math.isinf(float(str)):
-                return numword_en.cardinal(float(re.sub("[^\d.-]","",str))) # -asg30 ,.3879th -> -30.3879
-            elif not math.isnan(long(str)) or not math.isinf(long(str)):
-                canonic_number = long(re.sub("[^\d-]","",str)) # -asg30 3879 th -> -303879
-            else:
-                return False
-        except ValueError:
-            return False
-        if str.endswith(("th","rd","nd","st")):
-            result_words = ordinal(canonic_number)
-        elif str.endswith(("k")):
-            result_words = cardinal(canonic_number*1000)
-        elif str.endswith(("m")):
-            result_words = cardinal(canonic_number*1000000)
-        else:
-            result_words = re.sub("[\d.-]+",cardinal(canonic_number),str)
-        return result_words
-    import re
-
-    # todo dates "1980s", "'80s" -> eighties
-    decades = {"'20s":"twenties","1920s":"twenties","'30s":"thirties","1930s":"thirties","'40s":"fourties","1940s":"fourties",
-               "'50s":"fifties","1950s":"fifties","'60s":"sixties","1960s":"sixties","'70s":"seventies","1970s":"seventies",
-               "'80s":"eighties","1980s":"eighties","'90s":"nineties","1990s":"nineties"}
-    if "1980s" in decades:
-        print(decades[str])'''
-    # todo For 19.98, cardinal is twenty point two;
-    for val in [ 19.98, 11, 12, 21, 31, 33, 71, 80, 81, 91, 99, 100, 101, 102, 120, 155,
-             180, 300, 308, 832, 1000, 1001, 1061, 1100, 1120, 1500, 1701, 1800,
-             2000, 2010, 2099, 2171, 3000, 8280, 8291, 150000, 500000, 1000000,
-             2000000, 2000001, -21212121211221211111, -2.121212, -1.0000100,
-             1325325436067876801768700107601001012212132143210473207540327057320957032975032975093275093275093270957329057320975093272950730]:
+    for val in [ 19.98, -2.121212,
+            11, 12, 21, 31, 33, 71, 80, 81, 91, 99, 100, 101, 102, 120, 155,
+            180, 300, 308, 832, 1000, 1001, 1061, 1100, 1120, 1500, 1701, 1800,
+            2000, 2010, 2099, 2171, 3000, 8280, 8291, 150000, 500000, 1000000,
+            2000000, 2000001, -21212121211221211111, -2.121212, -1.0000100,
+            1325325436067876801768700107601001012212132143210473207540327057320957032975032975093275093275093270957329057320975093272950730]:
         _NW.test(val)
-        quit()
 
 if __name__ == "__main__":
     main()
