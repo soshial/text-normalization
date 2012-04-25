@@ -116,7 +116,7 @@ class NumWordRU(NumWordBase):
         pre = long(math.trunc(value))
         post = abs(value - pre)
         out = [self.cardinal(pre)]
-        if self.precision:
+        if not self.precision == 0:
             if 11 <= pre % 100 <= 19 or 5 <= pre % 10 or pre % 10 == 0: out.append(self.morph.inflect_ru(self.pointword[0].upper(),u"мн,рд").lower())
             else: out.append(self.morph.inflect_ru(self.pointword[0].upper(),u"ед,жр" + self.inflection_case).lower())
             decimal = int(round(post * (10**self.precision)))
@@ -187,10 +187,11 @@ class NumWordRU(NumWordBase):
         """
         Convert to currency
         """
-        return self._split(val, hightxt=u"доллар/ов", lowtxt=u"цент/ов",
+        return self._split(val, hightxt=u"доллар", lowtxt=u"цент",
                                 jointxt=u"и", longval=longval)
 
     def _inflect(self, value, text, secondary):
+        # @secondary is another tuple(val,text) to have a grammatical agreement with
         if secondary is None:
             return super(NumWordRU,self)._inflect(value, text)
         elif secondary == 0: # initial inflecting of all numbers
@@ -257,6 +258,7 @@ class NumWordRU(NumWordBase):
                 if sec_numb % 10 == 1:
                     return self.morph.inflect_ru(text.upper(), self.inflection_case + u",ед").lower()
                 else:
+
                     return self.morph.inflect_ru(text.upper(), self.inflection_case + u",мн").lower()
 
 

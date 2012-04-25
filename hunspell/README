@@ -10,9 +10,10 @@ Table structure:
 ** 0 - unknown
 ** 1 - same sense, spelling is a bit diferent ("learnt" and "learned", "uttermost" and "utmost")
 ** 2 - full synonyms but different spelling ()
-** 3 - close spelling, but senses or connotation differ (quasi-synonyms)
-** 4 - errative (intentional mistake, misspelling)
-** 5 - other
+** 3 - close spelling, but there are other senses (quasi-synonyms1)
+** 4 - close spelling, connotation differ (quasi-synonyms2)
+** 5 - errative (intentional mistake, misspelling)
+** 6 - other
 
 TODO list to fix: SELECT *  FROM `word_equivalents` WHERE `principal` = -1 ORDER BY word_id
 
@@ -42,15 +43,28 @@ TODO list to fix: SELECT *  FROM `word_equivalents` WHERE `principal` = -1 ORDER
         292808: [m1][trn][!trs]То же, что:[/!trs] [ref]накладывать[/ref] (1,3).[/trn][/m]
 
     c. and then just another regex:
+        (\d+: )\[m\d?\]\d+\)(.*\[!trs\]то же,? что:?\[\/!trs\] (\[ref\])?([\w ~{}:*-]*)(\[\/ref\])?.*)\[/m\]\n
+        into // other senses
+        \1\2{bef}\n
+
+        (\d+:.*\[!trs\]то же,? что:?\[\/!trs\] (\[ref\])?)([\w ~{}:*-]*)((\[\/ref\])?.*)\n(\d+-\s?\S)
+        into // other senses
+        \1\3{a}\4\n\6
+
+        (\d+:.*\[!trs\]то же,? что:?\[\/!trs\] (\[ref\])?)([\w ~{}:*-]*)(\[\/ref\])?.+\(([\d].*)\)(.*\n)
+        into // link to only sense
+        \1\3{3:\5}\4\6
+
+        \d+-([\w -]+)\n(([\d]+-.+\n)*\d+:.*)(\[!trs\]то же,? что:?\[\/!trs\] (\[ref\])?)([\w ~{}:*-]*)((\[\/ref\])?.*)\n([\d]+-.*\n)*--
+        into // final transformation
+        @#$\1|\6|\2$#@
+
         \d+-([\w -]+)\n(?#line_with_main_keyword)
         ([\d]+-.+\n)*(?#before_meanings)
-        \d+:.*(\[p\].+\[/p\].*)*.*\[!trs\]то же,? что:?\[\/!trs\] (\[ref\])?([\w ~-]*)(\[\/ref\])?.*
+        \d+:\d+\).*(\[p\].+\[/p\].*)*.*\[!trs\]то же,? что:?\[\/!trs\] (\[ref\])?([\w ~-]*)(\[\/ref\])?.*
         \n\d+-\s?\S(?#after_meanings)
 
-        and transforms it using \2:\4
-
-
-        накренять:накренивать
+        @#$накренять|накренивать|kldsfjslkfjsdl l sdfksd mjls$#@
         накреняться:накрениваться
         налагать:накладывать
 

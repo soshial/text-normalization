@@ -1,64 +1,5 @@
 # coding: utf-8
-#
-
-def get_canonical_number_from_string(clean_number_string):
-    """Converting @str into float or long number"""
-    import math,re
-    if re.search("[.,]",clean_number_string) and not math.isnan(float(clean_number_string)) and not math.isinf(float(clean_number_string)):
-        return float(clean_number_string)
-    elif not math.isnan(long(clean_number_string)) and not math.isinf(long(clean_number_string)):
-        return long(clean_number_string)
-    else:
-        raise ValueError
-
-def check_and_convert_into_number(str):
-    """This function checks the string for being number and returns spelled numeral in a string"""
-    import re
-    if not re.search("\d",str): # if numbers are not present then we just return the string back
-        return str
-    elif re.search("^-?\d+(.|,)?\d*$",str): # canonic number string: '-30.3879'
-        clean_number_string = re.sub(',','',str)
-    else:
-        clean_number_string = re.sub("\D","",str) # just cleaned number: # -30 ,.3879 -> 303879
-    try:
-        canonical_number = get_canonical_number_from_string(clean_number_string) # cleaned number converting into long/float
-    except StandardError:
-        logger.info('Problem with processing type of variable (long, float): ' + str + ' -> ' + clean_number_string)
-        raise StandardError
-    # main processing of the word
-    decades = {"'20s":"twenties","1920s":"twenties","'30s":"thirties","1930s":"thirties","'40s":"fourties","1940s":"fourties",
-                 "'50s":"fifties","1950s":"fifties","'60s":"sixties","1960s":"sixties","'70s":"seventies","1970s":"seventies",
-                 "'80s":"eighties","1980s":"eighties","'90s":"nineties","1990s":"nineties"}
-    # todo $¢€£
-    if re.search("^-?\d+(.|,)?\d*$",str): return numword_en.cardinal(canonical_number)
-    elif re.search("^\d{4}-\d{2,4}$",str): # "1982-(19)95" -> "from 1982 to 1995"
-        def daterepl(matchobj):
-            try:
-                return "from " + numword_en.cardinal(get_canonical_number_from_string(matchobj.group(1))) +" to " + numword_en.cardinal(get_canonical_number_from_string(matchobj.group(2)))
-            except StandardError:
-                logger.info('Problem with processing type of 2 variables (e.g. 1763-98): ' + str)
-                raise StandardError
-        return re.sub("(\d{4})-(\d{4})",daterepl,str,0)
-    elif re.search("(\d\d\d\d-\d\d-\d\d)|(\d\d-\d\d-\d\d\d\d)|(\d\d\d\d/\d\d/\d\d)|(\d\d/\d\d/\d\d\d\d)",str):
-        return ' ' # 2011-10-17, 12/02/1997 are omitted, but the sentences are not
-    elif re.search("^(\+?\d?[\(]\d{3}[\)][\.| |\-]?|^\d{3}[\.|\-| ]?)?\d{3}(\.|\-| )?\d\d(\.|\-| )?\d\d$",str):
-        print 'phone';return '' # the phone numbers like (607)-432-1000 (916) 934-45-54
-    elif re.search("^\d+(-year-old|-pound|-foot|-acre|-year|-liter|-litre|-step|-yard|-day|-hour|-month-old|-month|-million|-week|-mile|-plus|-point|-minute|-inch|-degrees|-second)$",str):
-        return re.sub("^\d+",numword_en.cardinal(canonical_number),str)
-    elif re.search("^\d+%|‰|‱$",str): # todo per mille, basis point
-        return numword_en.ordinal(canonical_number) + ' percent'
-    elif re.search("^[\d. -]+$",str): # if we have just clean numbers with math symbols or spaces
-        return numword_en.cardinal(canonical_number)
-    elif re.search("^\d+(th|rd|nd|st)$",str):
-        return numword_en.ordinal(canonical_number)
-    elif str in decades:
-        return decades[str]
-    elif re.search("^\d+k$",str):
-        return numword_en.cardinal(canonical_number*1000)
-    elif re.search("^\d+m$",str):
-        return numword_en.cardinal(canonical_number*1000000)
-    else:
-        return re.sub("[\d.-]+",numword_en.cardinal(canonical_number),clean_number_string)
+__author__ = 'soshial'
 
 def dictionary_check(word):
     """Checks the word and its variations for being in the dictionary"""
@@ -97,6 +38,49 @@ def dictionary_check(word):
     else:
         return var.lower() # if it had entered the loop, but the original word is not there, then we return one of the variants
 
+# initializing database
+def init_dic(lang):
+    import MySQLdb
+    conn = MySQLdb.connect (host = "192.168.2.101",
+        user = "builder",
+        passwd = "builderpass",
+        db = "builder")
+    cursor = conn.cursor ()
+
+    principal_words = {}
+    other_words = {}
+    cursor.execute ("SET NAMES 'utf8' COLLATE 'utf8_general_ci'")
+    cursor.execute ("SELECT word_id, word_spelling, principal FROM word_equivalents_%s WHERE lang = '%s' AND relation = 1 OR principal > 0" % (lang,lang))
+    while True:
+        row = cursor.fetchone ()
+        #quit(row[1])
+        if row is None:
+            break
+        if row[2]: principal_words[int(row[0])] = (row[1]) # {46:'analyzer'}
+        else: other_words[(row[1])] = int(row[0]) # {'analyser':46}
+    #logger.info("Equivalent words imported: %d" % cursor.rowcount)
+
+    dictionary = set()
+    cursor.execute ("SELECT word FROM dict_%s" % lang)
+    while True:
+        row = cursor.fetchone ()
+        if row is None:
+            break
+        dictionary.add(row[0])
+    #logger.info("Dictionary entries imported: %d" % cursor.rowcount)
+    cursor.close ()
+
+    conn.close ()
+    return dictionary,principal_words,other_words
+
+
+# processing script arguments
+import sys
+arguments = sys.argv
+lang = arguments[1] # en|ru|fr...
+path_in = arguments[2] # '/home/soshial/text-normalization/in/'
+path_out = arguments[3] # '/home/soshial/text-normalization/out/'
+
 # initializing logging
 import logging
 logger = logging.getLogger('norm')
@@ -106,50 +90,13 @@ hdlr.setFormatter(formatter)
 logger.addHandler(hdlr)
 logger.setLevel(logging.INFO)
 
-# initializing database
-import MySQLdb
-conn = MySQLdb.connect (host = "192.168.2.101",
-    user = "builder",
-    passwd = "builderpass",
-    db = "builder")
-cursor = conn.cursor ()
-
-principal_words = {}
-other_words = {}
-cursor.execute ("SELECT word_id, word_spelling, principal FROM word_equivalents WHERE lang = 'en' AND relation = 1 OR principal > 0")
-while True:
-    row = cursor.fetchone ()
-    if row is None:
-        break
-    if row[2]: principal_words[int(row[0])] = unicode(row[1]) # {46:'analyzer'}
-    else: other_words[unicode(row[1])] = int(row[0]) # {'analyser':46}
-logger.info("Equivalent words imported: %d" % cursor.rowcount)
-
-dictionary = set()
-cursor.execute ("SELECT word FROM en_us")
-while True:
-    row = cursor.fetchone ()
-    if row is None:
-        break
-    dictionary.add(row[0])
-logger.info("Dictionary entries imported: %d" % cursor.rowcount)
-cursor.close ()
-
-conn.close ()
-
-
-# processing script arguments
-import sys
-arguments = sys.argv
-path_in = arguments[1] # '/home/soshial/text-normalization/in/'
-path_out = arguments[2] # '/home/soshial/text-normalization/out/'
-
 # initializing linguistic components
-from nltk.tokenize import *
-import nltk.data
-sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
-from numword import numword_en
 # NB! nltk.download() # для работы программы необходимо при первом запуске раскомментировать строку и скачать модуль punkt tokenizer models # todo add to readme
+from nltk.tokenize import *
+import nltk.data as nltk_data
+exec("import num_"+lang+" as num; numw = num.Num"+lang.title()+"(lang,logger)")
+sent_detector = nltk_data.load('tokenizers/punkt/english.pickle')
+dictionary,principal_words,other_words = init_dic(lang)
 
 # working with files
 import glob, os, codecs
@@ -168,23 +115,26 @@ while True:
         file_outtxt = codecs.open(path_out + filename_intxt, 'w', 'utf-8-sig') # output file as ./out/_____.out
         sentences = sent_detector.tokenize(text_in)
         for sentence_in in sentences:
-            sentence_out = ''; omit = False
-            words = PunktWordTokenizer().tokenize(sentence_in)
+            sentence_out = ''; omit = False; i = 0;
+            words = PunktWordTokenizer().tokenize(sentence_in[:-1])
             for word in words:
                 if re.search("\d",word): # if numbers are not present then we just return the string back
                     try:
-                        word = check_and_convert_into_number(word)
+                        if i-1>0 and words[i-1] == "-": word = numw.check_and_convert_into_number("-"+word)
+                        else: word = numw.check_and_convert_into_number(word)
                     except StandardError, error_message:
                         omit = True
                         logger.info('Problem with: ' + unicode(error_message) +':  '+ word)
                         continue
                 if omit: break; # if something happens while converting, we should omit the sentence
-                temp_word = dictionary_check(word)
-                sentence_out += temp_word + ' '
+                if re.search(re.compile("\w",re.UNICODE),unicode(word)):
+                    temp_word = dictionary_check(word)
+                    sentence_out += temp_word + ' '
+                i += 1
             if not omit:
-                sentence_out = re.sub(re.compile("[^\w. '-]",re.UNICODE),"",sentence_out) + "\n" # todo \p{L} is not yet supported by Python 2.7.2
+                sentence_out = re.sub(re.compile("[^\w. '-]",re.UNICODE),"",sentence_out) # todo \p{L} is not yet supported by Python 2.7.2
                 sentence_out = re.sub(" ('s|'ve|'d|'re|'ll|'t)","\\1",sentence_out) # todo make adequate! 's 've 'd should be tokenized with the word
-                file_outtxt.write(sentence_out)
+                file_outtxt.write(sentence_out.strip() + "\n")
         file_outtxt.close()
         os.remove(fullpath_inmeta) # removing ./in/_____.meta for the loop not to process it again
         #os.remove(path_in + filename_intxt) # removing original ./in/_____.txt
@@ -193,7 +143,7 @@ while True:
     #time.sleep(wait)
 
 
-# usual/currency/year/temperature/time
+#
 
 #tokenization
 #nltk.sentence_tokenize

@@ -237,21 +237,23 @@ class NumWordBase(object):
         text = text.split("/")
         if value == 1:
             return text[0]
-        return "".join(text)
+        return u"".join(text)
 
-    def _split(self, val, hightxt="", lowtxt="", jointxt="", precision=2, longval=True, space=True):
+    def _split(self, val, hightxt="", lowtxt="", jointxt="", split_precision=2, longval=True, space=True):
         """This function is for customizing generated strings (e.g. for currency or year)
-        Splits the result string with @jointxt 'and' and @precision '2': 'currency is sixteen dollars and forty-five cents'"""
+        Setting @hightxt=u"dollar/s", @lowtxt=u"cent/s", @jointxt=u"and" with @split_precision '2' gives:
+            'currency is sixteen dollars and forty-five cents'
+        If @split_precision = 0 then only @hightxt stays; not to be confused with @self.precision!"""
         # todo make customizable, allowing _split() for usual cardinal
         out = []
         try:
             high, low = val
         except TypeError:
-            high, low = divmod(val, (10**precision))
-            #high = int(val)
-            #low = int(round((val - high) * (10**precision)))
+            high, low = divmod(val, (10**split_precision))
+            high = long(high)
+            #low = int(round((val - high) * (10**split_precision)))
         if high:
-            hightxt = self._title(self._inflect(high, hightxt))
+            hightxt = self._title(self._inflect(high,hightxt,(self.cardinal(high),high)))
             out.append(self.cardinal(high))
             if low:
                 if longval:
@@ -264,11 +266,11 @@ class NumWordBase(object):
         if low:
             out.append(self.cardinal(low))
             if lowtxt and longval:
-                out.append(self._title(self._inflect(low, lowtxt)))
+                out.append(self._title(self._inflect(low, lowtxt,(self.cardinal(low),low))))
         if space:
-            return " ".join(out)
+            return u" ".join(out)
         else:
-            return "".join(out)
+            return u"".join(out)
 
     def year(self, value, **kwargs):
         """
