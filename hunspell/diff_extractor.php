@@ -31,13 +31,13 @@ function array_has_duplicates($array){
 // gives us the number of the next word_id to be added
 function next_word_id($word)
 {
-  $query_result = mysql_query("SELECT * FROM word_equivalents WHERE word_spelling = '$word'");
+  $query_result = mysql_query("SELECT * FROM word_equivalents_en WHERE word_spelling = '$word'");
   if (!$query_result) die('Ошибка выполнения запроса:' . mysql_error());
   $result_array = mysql_fetch_assoc($query_result);
   if ($result_array) return $result_array['word_id'];
   else
   {
-    $query_result = mysql_query("SELECT MAX(word_id) FROM word_equivalents");
+    $query_result = mysql_query("SELECT MAX(word_id) FROM word_equivalents_en");
     return mysql_result($query_result,0)+1;
   }
 }
@@ -121,7 +121,7 @@ foreach($spelling_variants as $variant)
 {
   $word0 = mysql_real_escape_string($variant["en_GB"]);$word1 = mysql_real_escape_string($variant["en_US"]);
   $next_word_id = min(next_word_id($word0),next_word_id($word1));
-  $result = mysql_query("INSERT INTO word_equivalents (lang,word_id,word_spelling,meta_info,principal,relation)
+  $result = mysql_query("INSERT INTO word_equivalents_en (lang,word_id,word_spelling,meta_info,principal,relation)
                               VALUES ('en',$next_word_id,'$word0','ize',1,1), 
                                      ('en',$next_word_id,'$word1','ise',0,1)");
 }//wo_diac //with_diac
@@ -129,7 +129,7 @@ foreach($automatic as $variant)
 {
   $word0 = mysql_real_escape_string($variant["en_GB"]);$word1 = mysql_real_escape_string($variant["en_US"]);
   $next_word_id = min(next_word_id($word0),next_word_id($word1));
-  $result = mysql_query("INSERT INTO word_equivalents (lang,word_id,word_spelling,meta_info,principal,relation)
+  $result = mysql_query("INSERT INTO word_equivalents_en (lang,word_id,word_spelling,meta_info,principal,relation)
                               VALUES ('en',$next_word_id,'$word0','ize',1,1),
                                      ('en',$next_word_id,'$word1','ise',0,1)");
 }
@@ -141,14 +141,14 @@ foreach($unrecognized as $variant)
   foreach ($variant['en_GB'] as $var)
   {
       $word = mysql_real_escape_string($var);
-      mysql_query("INSERT INTO word_equivalents (lang,word_id,word_spelling,meta_info,principal,relation)
+      mysql_query("INSERT INTO word_equivalents_en (lang,word_id,word_spelling,meta_info,principal,relation)
                               VALUES ('en',$next_word_id,'$word','ize',-1,1)");
   }
   foreach ($variant['en_US'] as $var) {$next_word_id = min(next_word_id(mysql_real_escape_string($var)),$next_word_id);}
   foreach ($variant['en_US'] as $var)
   {
       $word = mysql_real_escape_string($var);
-      mysql_query("INSERT INTO word_equivalents (lang,word_id,word_spelling,meta_info,principal,relation)
+      mysql_query("INSERT INTO word_equivalents_en (lang,word_id,word_spelling,meta_info,principal,relation)
                               VALUES ('en',$next_word_id,'$word','ise',-1,1)");
   }
 }

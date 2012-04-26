@@ -138,6 +138,12 @@ while True:
         file_outtxt.close()
         os.remove(fullpath_inmeta) # removing ./in/_____.meta for the loop not to process it again
         #os.remove(path_in + filename_intxt) # removing original ./in/_____.txt
+        # processing normalization for russian
+        if lang == "ru":
+            import subprocess
+            subprocess.call(['php ./normalizer_ru.php',])
+            post_aot = codecs.open(path_in + filename_intxt, "r", "cp1251").read()
+
         file_meta = codecs.open(path_out + fullpath_inmeta.split('/')[-1], 'w', 'utf-8') # creating ./out/_____.meta
         file_meta.close()
     #time.sleep(wait)
