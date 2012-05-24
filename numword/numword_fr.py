@@ -89,7 +89,7 @@ class NumWordFR(NumWordEU):
         if old:
             hightxt = u"franc/s"
         return self._split(val, hightxt=hightxt, lowtxt=u"centime/s",
-                jointxt=u"et", longval=longval)
+                            split_precision=0,jointxt=u"et", longval=longval)
 
 _NW = NumWordFR()
 

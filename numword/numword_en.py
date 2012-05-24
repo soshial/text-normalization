@@ -120,12 +120,10 @@ class NumWordEN(NumWordBase):
             return self._split(value, hightxt=u"", jointxt=u"", longval=longval)
         return self._split(value, hightxt=u"hundred", jointxt=u"and", longval=longval)
 
-    def currency(self, val, longval=True):
-        # todo negative currency: wrong number o_O
-        # todo float currency: no "dollar"
+    def currency(self, value, longval=True):
         temp_precision, self.precision = self.precision, 2
-        return_var = self._split(val, hightxt=u"dollar/s", lowtxt=u"cent/s",
-                                jointxt=u"and", longval=longval)
+        return_var = self._split(value, hightxt=u"dollar/s", lowtxt=u"cent/s",
+                                split_precision=0, jointxt=u"and", longval=longval)
         self.precision = temp_precision
         return return_var
 
@@ -164,7 +162,8 @@ def year(value, longval=True):
 
 def main():
     """Main program"""
-    for val in [ -19.98, -100, -2.128212, 2.40, 1.2345678,
+    for val in [ 400, 5, 2.4, 3.60,
+            -19.98, -100, -2.128212, 2.40, 1.2345678,
             #11, 12, 21, 31, 33, 71, 80, 81, 91, 99, 100, 101, 102, 120, 155,
             #180, 300, 308, 832, 1000, 1001, 1061, 1100, 1120, 1500, 1701, 1800,
             #2000, 2010, 2099, 2171, 3000, 8280, 8291, 150000, 500000, 1000000,

@@ -180,19 +180,19 @@ class NumWordRU(NumWordBase):
         return u"%s%s" % (value, self.ordinal(value)[-2:])
 
 
-    def year(self, val, longval=True):
+    def year(self, value, longval=True):
         """Convert number into year"""
         self._verify_ordinal(value)
-        if not (val//100)%10: # years like 1066 or 2011 are treated as cardinal
-            return self.cardinal(val)
-        elif 1700 <= val <= 2050: # years in these borders are usually spelled without joining words
-            return self._split(val, hightxt=u"", jointxt=u"", longval=longval)
-        return self._split(val, hightxt=u"hundred", jointxt=u"and", longval=longval)
+        if not (value//100)%10: # years like 1066 or 2011 are treated as cardinal
+            return self.cardinal(value)
+        elif 1700 <= value <= 2050: # years in these borders are usually spelled without joining words
+            return self._split(value, hightxt=u"", jointxt=u"", longval=longval)
+        return self._split(value, hightxt=u"hundred", jointxt=u"and", longval=longval)
 
-    def currency(self, val, longval=True):
+    def currency(self, value, longval=True):
         temp_precision, self.precision = self.precision, 2
-        return_var = self._split(val, hightxt=u"доллар", lowtxt=u"цент",
-                                jointxt=u"и", longval=longval)
+        return_var = self._split(value, hightxt=u"доллар", lowtxt=u"цент",
+                                split_precision=0, jointxt=u"и", longval=longval)
         self.precision = temp_precision
         return return_var
 

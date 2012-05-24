@@ -115,18 +115,18 @@ class NumWordBase(object):
         """
         raise NotImplementedError
 
-    def _clean(self, val):
+    def _clean(self, value):
         """This function recursively in a loop converts the list @val into string using _merge() defined in corresponding derived class"""
-        out = val
-        while len(val) != 1: # the loop does
+        out = value
+        while len(value) != 1: # the loop does
             out = []
-            curr, next = val[:2]
+            curr, next = value[:2]
             if isinstance(curr, tuple) and isinstance(next, tuple):
                 out.append(self._merge(curr, next))
-                if val[2:]:
-                    out.append(val[2:]) # todo what does this mean?
+                if value[2:]:
+                    out.append(value[2:]) # todo what does this mean?
             else:
-                for elem in val:
+                for elem in value:
                     if isinstance(elem, list):
                         if len(elem) == 1:
                             out.append(elem[0])
@@ -134,7 +134,7 @@ class NumWordBase(object):
                             out.append(self._clean(elem)) # recursion unfolds all nested lists onto the upper level
                     else:
                         out.append(elem)
-            val = out
+            value = out
         return out[0]
 
     def _title(self, value):
@@ -238,19 +238,27 @@ class NumWordBase(object):
             return text[0]
         return u"".join(text)
 
-    def _split(self, val, hightxt="", lowtxt="", jointxt="", split_precision=2, longval=True, space=True):
+    def _split(self, value, hightxt="", lowtxt="", jointxt="", split_precision=2, longval=True, space=True):
         """This function is for customizing generated strings (e.g. for currency or year)
         Setting @hightxt=u"dollar/s", @lowtxt=u"cent/s", @jointxt=u"and" with @split_precision '2' gives:
             'currency is sixteen dollars and forty-five cents'
-        If @split_precision = 0 then only @hightxt stays; not to be confused with @self.precision!"""
+        If @split_precision = 0 then only @hightxt stays; not to be confused with @self.precision!
+        Be careful with float numbers!"""
         # todo make customizable, allowing _split() for usual cardinal
         out = []
         try:
-            high, low = val
+            high, low = value
         except TypeError:
-            high, low = divmod(val, (10**split_precision))
-            high = long(high)
-            #low = int(round((val - high) * (10**split_precision)))
+            if long(value) == value: # val is integer
+                high, low = divmod(value, (10**split_precision)); high = long(high)
+            else: # val is float!
+                print "#"
+                if self.precision == -1:
+                    high, low = unicode(value).split(".") # -19.98 -> -19
+                    high, low = long(high), long(low)
+                else:
+                    high = long(value) # -19.98 -> -19
+                    low = int(round(abs(abs(value) - abs(high)) * (10**self.precision)))
         if high:
             hightxt = self._title(self._inflect(high,hightxt,(self.cardinal(high),high)))
             out.append(self.cardinal(high))

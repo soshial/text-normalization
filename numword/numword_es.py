@@ -127,7 +127,7 @@ class NumWordES(NumWordEU):
         self.precision = 2
         if old:
             return self._split(val, hightxt=u"peso/s", lowtxt=u"peseta/s",
-                    divisor=1000, jointxt=u"y", longval=longval)
+                                split_precision=0, jointxt=u"y", longval=longval)
         return super(NumWordES, self).currency(val, jointxt=u"y",
                     longval=longval)
 

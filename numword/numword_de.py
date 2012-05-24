@@ -141,7 +141,7 @@ class NumWordDE(NumWordEU):
         self.precision = 2
         if old:
             return self._split(val, hightxt=u"Mark", lowtxt=u"Pfennig(e)",
-                                    jointxt=u"und",longval=longval)
+                                split_precision=0,jointxt=u"und",longval=longval)
         curr = super(NumWordDE, self).currency(val, jointxt=u"und", hightxt=u"Euro",
                         lowtxt=u"Cent", longval=longval, space=space)
         return curr.replace(u"eins", u"ein")
