@@ -15,7 +15,7 @@ class NumWordBase(object):
     def __init__(self):
         self.cards = OrderedMapping() # ordered list of numeral words
         self.is_title = False
-        self.precision = 2
+        self.precision = -1
         self.exclude_title = [] # words that should be excluded from making "Title Case" in using _title() function
         self.negword = u"(-) "
         self.pointword = u"(.)"
@@ -151,7 +151,7 @@ class NumWordBase(object):
         return value
 
     def _verify_ordinal(self, value):
-        """Verifies numword whether it can be an ordinal (not negative, not float)"""
+        """Verifies numword whether it can be an ordinal or year (not negative, not float)"""
         # todo str or int?
         if not value == long(value):
             raise TypeError, self.errmsg_floatord % (value)
@@ -180,20 +180,21 @@ class NumWordBase(object):
         except (ValueError, TypeError, AssertionError):
             raise TypeError(self.errmsg_nonnum % value)
         import math
-        pre = long(math.trunc(value))
-        post = abs(value - pre)
-        # todo precision fix!
-        out = [self.cardinal(pre)]
-        if self.precision:
-            decimal = int(round(post * (10**self.precision)))
-            if not isinstance(self.pointword, list):
-                out.append(self._title(self.pointword))
-                out.append(unicode(self.cardinal(decimal)))
-            else:
-                out.append(self._title(self.pointword[0]))
-                out.append(unicode(self.cardinal(decimal)))
-                ending = math.trunc(math.log(decimal,10))+1 # 925 -> trunc(2.91) + 1 = 3
-                out.append(self._title(self.pointword[ending]))
+        if self.precision == -1:
+            integer, decimal = unicode(value).split(".") # -19.98 -> -19
+            integer, decimal = long(integer), long(decimal)
+        else:
+            integer = long(value) # -19.98 -> -19
+            decimal = int(round(abs(abs(value) - abs(integer)) * (10**self.precision)))
+        out = [self.cardinal(long(integer))]
+        if not isinstance(self.pointword, list):
+            out.append(self._title(self.pointword))
+            out.append(unicode(self.cardinal(decimal)))
+        else:
+            out.append(self._title(self.pointword[0]))
+            out.append(unicode(self.cardinal(decimal)))
+            ending = math.trunc(math.log(decimal,10))+1 # 925 -> trunc(2.91) + 1 = 3
+            out.append(self._title(self.pointword[ending]))
         return out
 
     def cardinal(self, value):
@@ -220,10 +221,8 @@ class NumWordBase(object):
         return self._title(out + words)
 
     def ordinal(self, value):
-        """
-        Convert to ordinal
-        """
-        return self.cardinal(value)
+        """Convert to ordinal"""
+        pass
 
     def ordinal_number(self, value):
         """Convert to ordinal number (5th, 21st etc.)"""
@@ -282,7 +281,10 @@ class NumWordBase(object):
         """
         Convert to currency
         """
-        return self.cardinal(value)
+        # don't forget to make precision 2 in all child classes!
+        # and more important: make it again as it was!
+        self.precision = 2
+        pass
 
     def test(self,value,make_test_arrays = False):
         """Test function for manual testing in output; very simple"""

@@ -111,20 +111,23 @@ class NumWordEN(NumWordBase):
         return u"%s%s" % (value, self.ordinal(value)[-2:])
 
 
-    def year(self, val, longval=True):
+    def year(self, value, longval=True):
         """Convert number into year"""
-        if not (val//100)%10: # years like 1066 or 2011 are treated as cardinal
-            return self.cardinal(val)
-        elif 1700 <= val <= 2050: # years in these borders are usually spelled without joining words
-            return self._split(val, hightxt=u"", jointxt=u"", longval=longval)
-        return self._split(val, hightxt=u"hundred", jointxt=u"and", longval=longval)
+        self._verify_ordinal(value)
+        if not (value//100)%10: # years like 1066 or 2011 are treated as cardinal
+            return self.cardinal(value)
+        elif 1700 <= value <= 2050: # years in these borders are usually spelled without joining words
+            return self._split(value, hightxt=u"", jointxt=u"", longval=longval)
+        return self._split(value, hightxt=u"hundred", jointxt=u"and", longval=longval)
 
     def currency(self, val, longval=True):
-        """
-        Convert to currency
-        """
-        return self._split(val, hightxt=u"dollar/s", lowtxt=u"cent/s",
+        # todo negative currency: wrong number o_O
+        # todo float currency: no "dollar"
+        temp_precision, self.precision = self.precision, 2
+        return_var = self._split(val, hightxt=u"dollar/s", lowtxt=u"cent/s",
                                 jointxt=u"and", longval=longval)
+        self.precision = temp_precision
+        return return_var
 
 
 _NW = NumWordEN()
@@ -161,12 +164,13 @@ def year(value, longval=True):
 
 def main():
     """Main program"""
-    for val in [ 19.98, -2.121212,
-            11, 12, 21, 31, 33, 71, 80, 81, 91, 99, 100, 101, 102, 120, 155,
-            180, 300, 308, 832, 1000, 1001, 1061, 1100, 1120, 1500, 1701, 1800,
-            2000, 2010, 2099, 2171, 3000, 8280, 8291, 150000, 500000, 1000000,
-            2000000, 2000001, -21212121211221211111, -2.121212, -1.0000100,
-            1325325436067876801768700107601001012212132143210473207540327057320957032975032975093275093275093270957329057320975093272950730]:
+    for val in [ -19.98, -100, -2.128212, 2.40, 1.2345678,
+            #11, 12, 21, 31, 33, 71, 80, 81, 91, 99, 100, 101, 102, 120, 155,
+            #180, 300, 308, 832, 1000, 1001, 1061, 1100, 1120, 1500, 1701, 1800,
+            #2000, 2010, 2099, 2171, 3000, 8280, 8291, 150000, 500000, 1000000,
+            #2000000, 2000001, -21212121211221211111, -2.121212, -1.0000100,
+            #1325325436067876801768700107601001012212132143210473207540327057320957032975032975093275093275093270957329057320975093272950730
+    ]:
         _NW.test(val)
 
 if __name__ == "__main__":

@@ -84,6 +84,7 @@ class NumWordFR(NumWordEU):
         '''
         Convert to currency
         '''
+        self.precision = 2
         hightxt = u"Euro/s"
         if old:
             hightxt = u"franc/s"

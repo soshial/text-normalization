@@ -85,9 +85,9 @@ class NumWordDE(NumWordEU):
         ctext, cnum, ntext, nnum = curr + next
         if cnum == 1:
             if nnum == 100 or nnum == 10**3 :
-                return (u"ein" + ntext, nnum)
+                return u"ein" + ntext, nnum
             if nnum >= 10**6 and not (nnum % 10**3):
-                return (u"eine " + ntext.capitalize(), nnum)
+                return u"eine " + ntext.capitalize(), nnum
             return next
         if nnum > cnum:
             if nnum >= 10**6:
@@ -134,17 +134,16 @@ class NumWordDE(NumWordEU):
         self._verify_ordinal(value)
         return unicode(value) + u"te"
 
-    def currency(self, val, longval=True, old=False, hightxt=False, \
-        lowtxt=False, space=True):
+    def currency(self, val, longval=True, old=False, hightxt=False, lowtxt=False, space=True):
         """
         Convert to currency
         """
+        self.precision = 2
         if old:
             return self._split(val, hightxt=u"Mark", lowtxt=u"Pfennig(e)",
                                     jointxt=u"und",longval=longval)
-        curr = super(NumWordDE, self).currency(val, jointxt=u"und", \
-                hightxt=u"Euro", lowtxt=u"Cent", longval=longval, \
-                space=space)
+        curr = super(NumWordDE, self).currency(val, jointxt=u"und", hightxt=u"Euro",
+                        lowtxt=u"Cent", longval=longval, space=space)
         return curr.replace(u"eins", u"ein")
 
     def cardinal(self, value):
@@ -153,17 +152,18 @@ class NumWordDE(NumWordEU):
             prefix, suffix = str(value).split(".")
             pre_card = super(NumWordDE, self).cardinal(int(prefix))
             suf_card = self._cardinal_float(float("." + suffix))
-            suf_card = suf_card.replace(u"null %s" % (_NW.pointword),_NW.pointword)
+            suf_card = suf_card.replace(u"null %s" % _NW.pointword,_NW.pointword)
             cardinal = pre_card + " " + suf_card
             return cardinal
         else:
             return super(NumWordDE, self).cardinal(value)
 
-    def year(self, val, longval=True):
-        if not (val//100)%10:
-            return self.cardinal(val)
-        year = self._split(val, hightxt=u"hundert", longval=longval, space=False)
-        if year.count(self.negword) != 0:
+    def year(self, value, longval=True):
+        self._verify_ordinal(value)
+        if not (value//100)%10:
+            return self.cardinal(value)
+        year = self._split(value, hightxt=u"hundert", longval=longval, space=False)
+        if not year.count(self.negword) == 0:
             year = year.replace(self.negword, "").strip()
             year = year + u" v. Chr."
         return year.replace(u"eins", u"ein")

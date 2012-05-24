@@ -18,7 +18,9 @@ class NumWordRU(NumWordBase):
         super(NumWordRU,self).__init__()
         # initializing morphology module for inflecting
         from pymorphy import get_morph
-        self.morph = get_morph('./dicts/converted/ru/')
+        import os; dicts_folder = "./dicts/converted/ru/"
+        if not os.path.exists(dicts_folder): quit('Please put existing dictionaries into "'+dicts_folder+'" folder!')
+        self.morph = get_morph(dicts_folder)
         self.inflection_case = u"им" # todo add gender for the ending of numeral ('жр')
 
     def _set_high_numwords(self, high):
@@ -113,13 +115,16 @@ class NumWordRU(NumWordBase):
         except (ValueError, TypeError, AssertionError):
             raise TypeError(self.errmsg_nonnum % value)
         import math
-        pre = long(math.trunc(value))
-        post = abs(value - pre)
-        out = [self.cardinal(pre)]
+        if self.precision == -1:
+            integer, decimal = unicode(value).split(".") # -19.98 -> -19
+            integer, decimal = long(integer), long(decimal)
+        else:
+            integer = long(value) # -19.98 -> -19
+            decimal = int(round(abs(abs(value) - abs(integer)) * (10**self.precision)))
+        out = [self.cardinal(integer)]
         if not self.precision == 0:
-            if 11 <= pre % 100 <= 19 or 5 <= pre % 10 or pre % 10 == 0: out.append(self.morph.inflect_ru(self.pointword[0].upper(),u"мн,рд").lower())
+            if 11 <= integer % 100 <= 19 or 5 <= integer % 10 or integer % 10 == 0: out.append(self.morph.inflect_ru(self.pointword[0].upper(),u"мн,рд").lower())
             else: out.append(self.morph.inflect_ru(self.pointword[0].upper(),u"ед,жр" + self.inflection_case).lower())
-            decimal = int(round(post * (10**self.precision)))
             out.append(unicode(self.cardinal(decimal)))
             ending = math.trunc(math.log(decimal,10))+1 # 925 -> trunc(2.91) + 1 = 3
             if 11 <= decimal % 100 <= 19 or 5 <= decimal % 10 or decimal % 10 == 0: out.append(self.morph.inflect_ru(self.pointword[ending].upper(),u"мн,рд").lower())
@@ -177,6 +182,7 @@ class NumWordRU(NumWordBase):
 
     def year(self, val, longval=True):
         """Convert number into year"""
+        self._verify_ordinal(value)
         if not (val//100)%10: # years like 1066 or 2011 are treated as cardinal
             return self.cardinal(val)
         elif 1700 <= val <= 2050: # years in these borders are usually spelled without joining words
@@ -184,11 +190,11 @@ class NumWordRU(NumWordBase):
         return self._split(val, hightxt=u"hundred", jointxt=u"and", longval=longval)
 
     def currency(self, val, longval=True):
-        """
-        Convert to currency
-        """
-        return self._split(val, hightxt=u"доллар", lowtxt=u"цент",
+        temp_precision, self.precision = self.precision, 2
+        return_var = self._split(val, hightxt=u"доллар", lowtxt=u"цент",
                                 jointxt=u"и", longval=longval)
+        self.precision = temp_precision
+        return return_var
 
     def _inflect(self, value, text, secondary):
         # @secondary is another tuple(val,text) to have a grammatical agreement with

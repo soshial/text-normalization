@@ -124,6 +124,7 @@ class NumWordES(NumWordEU):
         '''
         Convert to currency
         '''
+        self.precision = 2
         if old:
             return self._split(val, hightxt=u"peso/s", lowtxt=u"peseta/s",
                     divisor=1000, jointxt=u"y", longval=longval)
