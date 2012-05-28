@@ -1,12 +1,20 @@
 -- phpMyAdmin SQL Dump
--- version 2.11.4
+-- version 3.5.0
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Apr 25, 2012 at 05:06 PM
--- Server version: 3.23.32
+-- Generation Time: Apr 27, 2012 at 04:26 PM
+-- Server version: 5.1.58-1ubuntu1
 -- PHP Version: 5.3.6-13ubuntu3.3
 
+SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
 
 --
 -- Database: `builder`
@@ -15,14 +23,14 @@
 -- --------------------------------------------------------
 
 --
--- Table structure for table `equiv_ru`
+-- Table structure for table `word_equivalents_ru`
 --
 
-CREATE TABLE IF NOT EXISTS `equiv_ru` (
+CREATE TABLE IF NOT EXISTS `word_equivalents_ru` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `lang` varchar(2) NOT NULL DEFAULT 'ru',
   `word_id` int(10) unsigned NOT NULL,
-  `word_spelling` varchar(64) NOT NULL,
+  `word_spelling` varchar(64) CHARACTER SET cp1251 NOT NULL,
   `word_affix` varchar(64) NOT NULL,
   `meta_info` varchar(64) NOT NULL,
   `principal` tinyint(1) NOT NULL DEFAULT '0',
@@ -33,10 +41,10 @@ CREATE TABLE IF NOT EXISTS `equiv_ru` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=66102 ;
 
 --
--- Dumping data for table `equiv_ru`
+-- Dumping data for table `word_equivalents_ru`
 --
 
-INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
+INSERT INTO `word_equivalents_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
 (1, 'ru', 1, 'номер', '', '', 1, 0),
 (2, 'ru', 1, 'нумер', '', '', 0, 0),
 (3, 'ru', 2, 'проект', '', '', 1, 0),
@@ -88,8 +96,8 @@ INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, 
 (49, 'ru', 22, 'жёлчь', '', '', 1, 0),
 (50, 'ru', 22, 'желчь', '', '', 0, 1),
 (51, 'ru', 23, 'агапэ', '', '', 1, 0),
-(52, 'ru', 23, 'ага́пе', '', '', 0, 1),
-(53, 'ru', 23, 'ага́пи', '', '', 0, 1),
+(52, 'ru', 23, 'ага?пе', '', '', 0, 1),
+(53, 'ru', 23, 'ага?пи', '', '', 0, 1),
 (54, 'ru', 24, 'апокалиптический', '', '', 1, 0),
 (55, 'ru', 24, 'апокалипсический', '', '', 0, 1),
 (56, 'ru', 25, 'мучить', '', '0__1', 1, 0),
@@ -104,8 +112,8 @@ INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, 
 (67, 'ru', 29, 'гросмейстер', '', '', 0, 1),
 (68, 'ru', 30, 'навылет', '', '', 1, 0),
 (69, 'ru', 30, 'на вылет', '', '', 0, 1),
-(70, 'ru', 31, 'псалты́рь', '', '', 1, 0),
-(71, 'ru', 31, 'псалти́рь', '', 'уст', 0, 1),
+(70, 'ru', 31, 'псалты?рь', '', '', 1, 0),
+(71, 'ru', 31, 'псалти?рь', '', 'уст', 0, 1),
 (72, 'ru', 32, 'халиф', '', '0__1', 1, 0),
 (73, 'ru', 32, 'калиф', '', '0м.', 0, 1),
 (74, 'ru', 33, 'репозиторий', '', '', 1, 0),
@@ -842,7 +850,7 @@ INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, 
 (54780, 'ru', 389, 'ветряк', '', 'м.,разг.', 0, 3),
 (54781, 'ru', 389, 'ветродвигатель', '', '__1', 1, 1),
 (54782, 'ru', 390, 'ветхенький', '', 'прил.,разг.', 0, 1);
-INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
+INSERT INTO `word_equivalents_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
 (54783, 'ru', 390, 'ветхонький', '', '__1', 1, 1),
 (54784, 'ru', 391, 'вечерами', '', 'нареч.', 0, 1),
 (54785, 'ru', 391, 'по вечерам', '', '__1', 1, 1),
@@ -1595,7 +1603,7 @@ INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, 
 (55555, 'ru', 753, 'гречневый', '', '__1', 1, 1),
 (55556, 'ru', 754, 'гридень', '', 'м.', 0, 1),
 (55557, 'ru', 754, 'гридин', '', '__1__1', 1, 1);
-INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
+INSERT INTO `word_equivalents_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
 (55558, 'ru', 755, 'гридня', '', 'ж.', 0, 1),
 (55559, 'ru', 755, 'гридница', '', '__1', 1, 1),
 (55560, 'ru', 754, 'гридь', '', 'ж.,м.', 0, 1),
@@ -2356,7 +2364,7 @@ INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, 
 (56340, 'ru', 1121, 'запечек', '', 'м.,местн.', 0, 1),
 (56341, 'ru', 1121, 'запечье', '', '__1', 1, 1),
 (56342, 'ru', 1122, 'запихать', '', 'сов.,перех.,разг.', 0, 3);
-INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
+INSERT INTO `word_equivalents_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
 (56343, 'ru', 1122, 'запихнуть', '', '__1', 1, 1),
 (56344, 'ru', 1123, 'заплеснеть', '', 'сов.,неперех.,устар.', 0, 1),
 (56345, 'ru', 1123, 'заплесневеть', '', '__1', 1, 1),
@@ -3107,7 +3115,7 @@ INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, 
 (57119, 'ru', 1483, 'кобзари', '', '__1', 1, 1),
 (57120, 'ru', 1484, 'кобылятина', '', 'ж.,разг.-сниж.', 0, 1),
 (57121, 'ru', 1484, 'конина', '', '__1', 1, 1);
-INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
+INSERT INTO `word_equivalents_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
 (57122, 'ru', 1485, 'кобылячий', '', 'прил.,разг.-сниж.', 0, 1),
 (57123, 'ru', 1485, 'кобылий', '', '__1', 1, 1),
 (57124, 'ru', 1486, 'ковёрщик', '', 'м.,устар.', 0, 1),
@@ -3875,7 +3883,7 @@ INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, 
 (57920, 'ru', 1850, 'лозный', '', 'прил.,устар.', 0, 1),
 (57921, 'ru', 1850, 'лозовый', '', '__1', 1, 1),
 (57922, 'ru', 1851, 'локализировать', '', 'несов.,сов.,перех.', 0, 1);
-INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
+INSERT INTO `word_equivalents_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
 (57923, 'ru', 1851, 'локализовать', '', '__1', 1, 1),
 (57924, 'ru', 1852, 'локотник', '', 'м.,устар.', 0, 1),
 (57925, 'ru', 1852, 'подлокотник', '', '__1__1', 1, 1),
@@ -4626,7 +4634,7 @@ INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, 
 (58729, 'ru', 2196, 'набавочный', '', '__1', 1, 1),
 (58730, 'ru', 2197, 'надветренный', '', 'прил.', 0, 1),
 (58731, 'ru', 2197, 'наветренный', '', '__1', 1, 1);
-INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
+INSERT INTO `word_equivalents_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
 (58732, 'ru', 2198, 'надглавие', '', 'ср.', 0, 1),
 (58733, 'ru', 2198, 'надглавок', '', '__1', 1, 1),
 (58734, 'ru', 2199, 'надивоваться', '', 'сов.,разг.-сниж.', 0, 1),
@@ -5345,7 +5353,7 @@ INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, 
 (59482, 'ru', 2539, 'низкопоклонничество', '', 'ср.', 0, 1),
 (59483, 'ru', 2539, 'низкопоклонство', '', '__1', 1, 1),
 (59484, 'ru', 2540, 'низкопоклонствовать', '', 'несов.,неперех.', 0, 1);
-INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
+INSERT INTO `word_equivalents_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
 (59485, 'ru', 2540, 'низкопоклонничать', '', '__1', 1, 1),
 (59486, 'ru', 2541, 'николи', '', 'нареч.,местн.', 0, 1),
 (59487, 'ru', 2541, 'никогда', '', '__1', 1, 1),
@@ -6090,7 +6098,7 @@ INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, 
 (60253, 'ru', 2897, 'обтрёпываться', '', '__1', 1, 1),
 (60254, 'ru', 2898, 'отрепья', '', 'мн.', 0, 1),
 (60255, 'ru', 2898, 'отрепье', '', '__1', 1, 1);
-INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
+INSERT INTO `word_equivalents_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
 (60256, 'ru', 2899, 'отрощать', '', 'сов.,перех.,разг.-сниж.', 0, 1),
 (60257, 'ru', 2899, 'отращивать', '', '__1', 1, 1),
 (60258, 'ru', 2900, 'отрубок', '', 'м.,устар.', 0, 1),
@@ -6821,7 +6829,7 @@ INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, 
 (61019, 'ru', 3245, 'погрешение', '', '__1', 1, 1),
 (61020, 'ru', 3246, 'погублять', '', 'несов.,перех.,устар.', 0, 1),
 (61021, 'ru', 3246, 'губить', '', '__1', 1, 1);
-INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
+INSERT INTO `word_equivalents_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
 (61022, 'ru', 3247, 'подалириус', '', 'м.', 0, 1),
 (61023, 'ru', 3247, 'подалирий', '', '__1', 1, 1),
 (61024, 'ru', 3248, 'подбадривать', '', 'несов.,перех.', 0, 1),
@@ -7551,7 +7559,7 @@ INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, 
 (61786, 'ru', 3591, 'приколдовывать', '', 'несов.,перех.', 0, 1),
 (61787, 'ru', 3591, 'привораживать', '', '__1', 1, 1),
 (61788, 'ru', 3592, 'приколка', '', 'ж.,разг.', 0, 3);
-INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
+INSERT INTO `word_equivalents_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
 (61789, 'ru', 3592, 'заколка', '', '__1', 1, 1),
 (61790, 'ru', 3593, 'прикоплять', '', 'несов.,перех.,разг.', 0, 1),
 (61791, 'ru', 3593, 'прикапливать', '', '__1', 1, 1),
@@ -8281,7 +8289,7 @@ INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, 
 (62557, 'ru', 3934, 'растлиться', '', '__1', 1, 1),
 (62558, 'ru', 3935, 'расточительство', '', 'ср.', 0, 1),
 (62559, 'ru', 3935, 'расточительность', '', '__1', 1, 1);
-INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
+INSERT INTO `word_equivalents_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
 (62560, 'ru', 3936, 'растрава', '', 'ж.,разг.', 0, 3),
 (62561, 'ru', 3936, 'растравление', '', '__1', 1, 1),
 (62562, 'ru', 3937, 'растравливать', '', 'несов.,перех.', 0, 1),
@@ -9032,9 +9040,9 @@ INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, 
 (63352, 'ru', 4287, 'синелевый', '', 'прил.', 0, 1),
 (63353, 'ru', 4287, 'синельный', '', '__1', 1, 1),
 (63354, 'ru', 4288, 'синема', '', 'ж.,устар.', 0, 1),
-(63355, 'ru', 4288, 'кино', '', '__1', 1, 1),
-(63356, 'ru', 1279, 'синематограф', '', 'м.,устар.', 0, 1);
-INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
+(63355, 'ru', 4288, 'кино', '', '__1', 1, 1);
+INSERT INTO `word_equivalents_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
+(63356, 'ru', 1279, 'синематограф', '', 'м.,устар.', 0, 1),
 (63358, 'ru', 4289, 'синематографист', '', 'м.,устар.', 0, 1),
 (63359, 'ru', 4289, 'кинематографист', '', '__1', 1, 1),
 (63360, 'ru', 4290, 'синильник', '', 'м.', 0, 1),
@@ -9774,10 +9782,10 @@ INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, 
 (64146, 'ru', 4632, 'стругаль', '', 'м.,разг.', 0, 1),
 (64147, 'ru', 4632, 'стругальщик', '', '__1', 1, 1),
 (64148, 'ru', 4633, 'струганина', '', 'ж.', 0, 1),
-(64149, 'ru', 4633, 'строганина', '', '__1', 1, 1),
+(64149, 'ru', 4633, 'строганина', '', '__1', 1, 1);
+INSERT INTO `word_equivalents_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
 (64150, 'ru', 4634, 'струганый', '', 'прил.', 0, 1),
-(64151, 'ru', 4634, 'строганый', '', '__1', 1, 1);
-INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
+(64151, 'ru', 4634, 'строганый', '', '__1', 1, 1),
 (64154, 'ru', 4635, 'струхнуть', '', 'сов.,неперех.,разг.-сниж.', 0, 1),
 (64155, 'ru', 4635, 'струсить', '', '__1', 1, 1),
 (64156, 'ru', 4636, 'стряпание', '', 'ср.,разг.', 0, 3),
@@ -10537,9 +10545,9 @@ INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, 
 (64956, 'ru', 4991, 'утрешний', '', 'прил.,разг.-сниж.', 0, 3),
 (64957, 'ru', 4991, 'утренний', '', '__1', 1, 1),
 (64958, 'ru', 4992, 'утрировка', '', 'ж.,разг.', 0, 1),
-(64959, 'ru', 4992, 'утрирование', '', '__1', 1, 1),
-(64960, 'ru', 4993, 'утроять', '', 'несов.,перех.,разг.-сниж.', 0, 1);
-INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
+(64959, 'ru', 4992, 'утрирование', '', '__1', 1, 1);
+INSERT INTO `word_equivalents_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
+(64960, 'ru', 4993, 'утроять', '', 'несов.,перех.,разг.-сниж.', 0, 1),
 (64961, 'ru', 4993, 'утраивать', '', '__1', 1, 1),
 (64962, 'ru', 4994, 'утюжка', '', 'ж.', 0, 1),
 (64963, 'ru', 4994, 'утюжение', '', '__1', 1, 1),
@@ -11296,10 +11304,10 @@ INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, 
 (65755, 'ru', 5349, 'широколистный', '', '__1', 1, 1),
 (65756, 'ru', 5350, 'ширпотребовский', '', 'прил.,разг.', 0, 1),
 (65757, 'ru', 5350, 'ширпотребный', '', '__1', 1, 1),
-(65758, 'ru', 5351, 'шитво', '', 'ср.,разг.-сниж.', 0, 1),
+(65758, 'ru', 5351, 'шитво', '', 'ср.,разг.-сниж.', 0, 1);
+INSERT INTO `word_equivalents_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
 (65759, 'ru', 5351, 'шитьё', '', '__1', 1, 1),
-(65760, 'ru', 5352, 'шифоньер', '', 'м.,устар.', 0, 3);
-INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, `meta_info`, `principal`, `relation`) VALUES
+(65760, 'ru', 5352, 'шифоньер', '', 'м.,устар.', 0, 3),
 (65761, 'ru', 5352, 'шифоньерка', '', '__1', 1, 1),
 (65762, 'ru', 5353, 'шифровщик', '', 'м.,разг.', 0, 1),
 (65763, 'ru', 5353, 'шифровальщик', '', '__1', 1, 1),
@@ -11625,3 +11633,7 @@ INSERT INTO `equiv_ru` (`id`, `lang`, `word_id`, `word_spelling`, `word_affix`, 
 (66098, 'ru', 5505, 'яхтовый', '', 'прил.', 0, 1),
 (66100, 'ru', 5506, 'ячейчатый', '', 'прил.', 0, 1),
 (66101, 'ru', 5506, 'ячеистый', '', '__1', 1, 1);
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
