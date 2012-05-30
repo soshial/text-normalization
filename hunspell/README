@@ -15,7 +15,7 @@ Table structure:
 ** 5 - errative (intentional mistake, misspelling)
 ** 6 - other
 
-TODO list to fix: SELECT *  FROM `word_equivalents` WHERE `principal` = -1 ORDER BY word_id
+TODO list to fix: SELECT *  FROM `en_word_equivalents` WHERE `principal` = -1 ORDER BY word_id
 
 1. diff_extractor.php processes diff output from different variants of English (or any other language)
     we used aspell generating lib: aspell -d en_GB-wo_accents dump master | aspell -l en expand > en_GB-wo_accents.dict
