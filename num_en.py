@@ -15,6 +15,7 @@ class NumEn(num_base.NumBase):
                                u"-minute",u"-inch",u"-degrees",u"-second"]
         self.plus = u"/plus"
         self.degree = u"degree/s"
+        self.number = u"number"
 
     def ordinals(self,str):
         if re.search("^\d*(1st|2nd|3rd|[4567890]th)$",str):

@@ -29,6 +29,7 @@ class NumRu(num_base.NumBase):
         #quit()
         self.plus = u"более/"
         self.degree = u"градус"
+        self.number = u"номер"
         self.numword.morph.inflection_case = u"им"
 
     def ordinals(self,str):
@@ -44,7 +45,6 @@ class NumRu(num_base.NumBase):
             # -й: мр,им / жр,тв красивый/красивой
             # -м: мр,тв / мр,пр красивым/красивом
             # -е: ср,им / мн,им
-
             # -ю: восьмую / восьмою todo что делать?
             return self.numword.ordinal(self.get_canonical_number_from_string(re.sub('\D','',str)))
         else: return False
@@ -59,7 +59,6 @@ class NumRu(num_base.NumBase):
 
     def complex_endings(self,str,number):
         self.numword.inflection_case = u"рд"
-        #print self.numword.cardinal(number),str todo to_fix!!
         return unicode(re.sub(" ","",self.numword.cardinal(number).upper()).lower())+re.sub("[\d-]","",str)
 
     def temperature(self,number):

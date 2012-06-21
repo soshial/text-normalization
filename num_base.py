@@ -22,6 +22,7 @@ class NumBase(object):
                                ('X', 10, 3), ('IX', 9, 1), ('V', 5, 1), ('IV', 4, 1), ('I', 1, 3)]
         self.plus = None
         self.degree= None
+        self.number= None
 
 
 
@@ -39,10 +40,11 @@ class NumBase(object):
         """This function checks the string for being number and returns spelled numeral in a string"""
         if not re.search("\d",str): # if numbers are not present then we just return the string back
             return str
-        elif re.search("^-?\d+(\.|,)?\d*$",str): # canonic number string: '-30.3879'
+        elif re.search("^-?\d+(\.|,)?\d*$",str): # if it is a canonic number string: '-30.3879'
             clean_number_string = re.sub(',','',str)
-        else:
-            clean_number_string = re.sub("\D","",str) # just cleaned number: # -30 ,.3879 -> 303879
+        else: # if it is some garbage
+            if re.search("^.?-?\d+(\.|,)?\d*.?$",str): clean_number_string = re.sub("[^\d.-]","",str) # just cleaned number: # -30 ,.3879 -> 303879
+            else: clean_number_string = re.sub("\D","",str) # just cleaned number: # -30 ,.3879 -> 303879
         try:
             canonical_number = self.get_canonical_number_from_string(clean_number_string) # cleaned number converting into long/float
         except StandardError:
@@ -78,6 +80,10 @@ class NumBase(object):
         elif str in self.decades:
             #print "#3"
             return self.decades[str]
+        elif re.search(u"^[#№]\d+$",str):
+            return self.number+" "+self.numword.cardinal(canonical_number)
+        elif re.search("^[$¢€£]-?\d+(\.|,)?\d*$",str):
+            return self.numword.currency(canonical_number)
         elif re.search("^[IVXLCM]{2,}$",str): # roman numerals
             #print "#4"
             return self.numword.cardinal(self.roman_to_int(str))

@@ -1,3 +1,5 @@
-This library is used for normalizing ru/en texts, according to http://en.wikipedia.org/wiki/Text_normalization.
-The numword library converts numbers to words. Extended.
-    It is based on the project http://code.google.com/p/numword/, which is based on pynum2word.
+This library is used for normalizing ru/en texts, according to http://en.wikipedia.org/wiki/Text_normalization
+The library is licensed under LGPL v3, full text of which can be found at http://www.gnu.org/copyleft/lesser.html
+All sql files are licensed under GNU FDL.
+
+Requires dictionaries, pymorphy and numword library (http://code.google.com/p/numword/, which is based on pynum2word)

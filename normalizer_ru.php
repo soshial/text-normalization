@@ -6,8 +6,9 @@
 2. запускаем testsynan с параметрами из ./ в ./out/ (cp1251 -> cp1251)
 3. выдаём окончательный файл для резолвера (cp1251 -> ?)
 4. обрабатываем резолвером (? -> ?)
-*/
 
+*/
+/*
 ini_set('display_errors', 1); set_time_limit(500); 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 //header ('Content-type: text/html; charset=cp1251');
@@ -101,41 +102,41 @@ foreach ($files as $file)
   //print_r($full_array);
   file_put_contents("/home/soshial/ling2/".trim($file),implode("\n",$full_array));
   //fwrite($list,"$file\n");
-}
+}*/
 
 // 2. запускаем testsynan с параметрами в out
 $t = microtime();
-echo "2. запускаем testsynan с параметрами в out";
-if(file_exists('/home/soshial/ling2/status')) unlink('/home/soshial/ling2/status');
-exec("export RML=~/ling2/rml/"); shell_exec("cd ~/ling2/");
+$aot_path = "/lms/apps/utils/";
+if (file_exists($aot_path."status")) unlink($aot_path.'status');
+exec("export RML=${aot_path}rml/"); shell_exec("cd ".$aot_path);
 do
 {
-  exec("/home/soshial/ling2/rml/Bin/TestSynan RUSSIAN /home/soshial/ling2/file.list",$output2);
+  exec("${aot_path}rml/Bin/TestSynan RUSSIAN ${aot_path}file.list",$output2);
   print_r($output2);
 }
 while(!empty($output2) && !strstr($output2[sizeof($output2)-1],'Finished'));
 
 // 3. генерируем файл для резолвера
 echo (microtime()-$t)."\n3. генерируем файл для резолвера\n";
-$files = file("/home/soshial/ling2/file.list");
+$files = file("${aot_path}file.list");
 $numeral = iconv('UTF-8','cp1251//IGNORE',"эа/эб/эв/эг/эд/эе/Ца/Цб/Цв/Цг/Цд/Це/эж/эз/эи/эй/эк/эл/эм/эн/эо/эп/эр/эс/эт/эу/эф/эх/эц/эч/эш/юа/юб/юв/юг/Лт/юд/юе/юж/юз/юи/юй/юк/юл/юм/юн/юо/юп/юр/юс/ют/юу/юф/юх/Лу/юц/юч/ющ ");
 foreach ($files as $file)
 {
-  $text = file('/home/soshial/ling2/out/'.trim($file));
-  $out_file = fopen("/home/soshial/ling2/out/_".trim($file),'w'); $i=0;
+  $text = file("${aot_path}out/".trim($file));
+  $out_file = fopen("${aot_path}out/_".trim($file),'w'); $i=0;
   foreach ($text as $line)
   { //$line = iconv('cp1251','UTF-8//IGNORE',str_replace(array('—','―','―'),'-',str_replace(array("\n",'́'),'',trim($line))));
     switch ($i%4)
     {
       case 0: fwrite($out_file,$line);break;
       case 1: $words = explode(' ',$line);
-	      foreach ($words as $word)
-	      {
-		if (is_numeric($word)) {fwrite($out_file,generate_numerals($word));}
-		else fwrite($out_file,$word." ");
-	      }
-	      break;
-      case 2: /*echo "<br/><br/>";print_r($words);echo "<br/>2#".$line.":<br/>";*/$letters = '';$space=false;$j=0; $k=0;while ($k<strlen($line)) // $j - номер слова $k - номер символа
+        foreach ($words as $word)
+        {
+          if (is_numeric($word)) {fwrite($out_file,generate_numerals($word));}
+          else fwrite($out_file,$word." ");
+        }
+        break;
+      case 2: $letters = '';$space=false;$j=0; $k=0;while ($k<strlen($line)) // $j - номер слова $k - номер символа
 {
 
   if (substr($line,$k,1)==' ' && $space == false) {$space = true;$j++;$k++;}
