@@ -4,10 +4,9 @@ __author__ = 'soshial'
 def dictionary_check(word):
     """Checks the word and its variations for being in the dictionary"""
     # the function should transform "The orthopaedics's co-ordination of aedicule is well-kno-wn." into "The orthopedics's coordination of edicule is well-known."
-    # todo support inflection (pymorphy/hunspell for russian)
     # todo support unambiguous abbreviations unfolding
+    # todo SPELLING VARIANTS support on VADIM side!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     # todo Latin words such as 'etc.', 'e.g.' etc. into pronouncible form
-    # todo 10 to 13 years -> ten to thirteen year's
     def spelling_variant_check(words):
         """Checks whether any from @words is in our substitution list"""
         for word_variant in words:
@@ -18,17 +17,25 @@ def dictionary_check(word):
     word = unicode(word)
     if word.upper() in dictionary:
         return spelling_variant_check([word])
-    import re
-    i = 1
-    clean_word = re.sub("\W","",word).upper()
-    variants = {clean_word, re.sub("-","",word).upper(), re.sub(" ","",word).upper()} # the list of all variants of the word
-        # for example, for the word "file" @variants would be: set(['FIL-E', 'FIL E', 'FI-LE', 'FI LE', 'FILE', 'F-ILE', 'F ILE'])
-    for letter in clean_word:
-        if i == len(clean_word): break
-        variants.add(clean_word[:i] + ' ' + clean_word[i:])
-        variants.add(clean_word[:i] + '-' + clean_word[i:])
-        #variants.add(clean_word[:i] + '\'' + clean_word[i:])
-        i += 1
+    clean_word = regex.sub("[^\w'.-]","",word).upper() # just cleant word only with apostrophies, hyphens and dots
+
+    # checking acronyms like "U.S.A."
+    if len(word)>2 and ".".join(list(word)) in dictionary: return ".".join(list(word))
+    # cheking abbreviations like "Mr., Mrs., Dr., ..."
+    if len(word)<5 and not word in dictionary and word+"." in dictionary: return word+"."
+    # checking and splitting hyphenized words like "out-of-order"
+    dehyphenized_set = set(clean_word.split("-"))
+    if len(dehyphenized_set) == len(dehyphenized_set & dictionary): return regex.sub("-"," ",word) # 'out-of-order' -> 'out of order'
+    variants = {clean_word, regex.sub("-","",word).upper()} # the set of all variants of the word
+    # generating all possible variants; not applicable, imho
+    # for example, for the word "file" @variants would be: set(['FIL-E', 'FIL E', 'FI-LE', 'FI LE', 'FILE', 'F-ILE', 'F ILE'])
+#    i = 1
+#    for letter in clean_word:
+#        if i == len(clean_word): break
+#        variants.add(clean_word[:i] + ' ' + clean_word[i:])
+#        variants.add(clean_word[:i] + '-' + clean_word[i:])
+#        variants.add(clean_word[:i] + '\'' + clean_word[i:])
+#        i += 1
     entered = False # @entered shows if there is some variant in the @dictionary
     for var in variants & dictionary: # some variant is in dictionary
         entered = True
@@ -40,20 +47,18 @@ def dictionary_check(word):
 
 # initializing database
 def init_dic(lang):
+    global config
     import MySQLdb
-    conn = MySQLdb.connect (host = "192.168.2.101",
-        user = "builder",
-        passwd = "builderpass",
-        db = "builder")
+    conn = MySQLdb.connect (host = config.get('db','host'), user = config.get('db','user'),
+                            passwd = config.get('db','passwd'), db = config.get('db','db'))
     cursor = conn.cursor ()
 
     principal_words = {}
     other_words = {}
     cursor.execute ("SET NAMES 'utf8' COLLATE 'utf8_general_ci'")
-    cursor.execute ("SELECT word_id, word_spelling, principal FROM word_equivalents_%s WHERE lang = '%s' AND relation = 1 OR principal > 0" % (lang,lang))
+    cursor.execute ("SELECT word_id, word_spelling, principal FROM %s_word_equivalents WHERE lang = '%s' AND relation = 1 OR principal > 0" % (lang,lang))
     while True:
         row = cursor.fetchone ()
-        #quit(row[1])
         if row is None:
             break
         if row[2]: principal_words[int(row[0])] = (row[1]) # {46:'analyzer'}
@@ -61,7 +66,7 @@ def init_dic(lang):
     #logger.info("Equivalent words imported: %d" % cursor.rowcount)
 
     dictionary = set()
-    cursor.execute ("SELECT word FROM dict_%s" % lang)
+    cursor.execute ("SELECT word FROM %s_dict WHERE state = 0" % lang)
     while True:
         row = cursor.fetchone ()
         if row is None:
@@ -73,6 +78,85 @@ def init_dic(lang):
     conn.close ()
     return dictionary,principal_words,other_words
 
+def omit_brackets(words):
+    counter = 0
+    if words.count("(") != words.count(")") or words.count("[") != words.count("]") or words.count("{") != words.count("}"):
+        return [] # all brackets should be paired
+    while '(' in words and ')' in words and counter < 4:
+        words = words[:words.index("(")] + words[words.index(")")+1:]
+        counter+=1
+    while '[' in words and ']' in words and counter < 4:
+        words = words[:words.index("[")] + words[words.index("]")+1:]
+        counter+=1
+    while '{' in words and '}' in words and counter < 4:
+        words = words[:words.index("{")] + words[words.index("}")+1:]
+        counter+=1
+    if counter > 3: words = []
+    return words
+
+def restore_apostrophes(words,sentence):
+    i=0 # token counter
+    pointer,max_pointer = 0,0 # points to the place where the substring is found
+    import string
+    for word in words:
+        if word.startswith("'") and i>0:
+            pointer = string.find(sentence,words[i-1]+word,max_pointer)
+            if pointer != -1:
+                max_pointer = max(max_pointer,pointer)
+                words = words[:i-1]+[words[i-1]+word]+words[i+1:]
+                i-=1 # we concatenate two neighbour words - hence we need for @i to stay the same
+        i+=1
+    return words
+
+def abridgement_fix(words):
+    i=0 # token counter
+    days_of_week = {'Mon':'Monday','Tue':'Tuesday','Thu':'Thursday','Fri':'Friday','Sat':'Saturday'}
+    months = {'Jan':'January','Feb':'February','Mar':'March','Apr':'April','Jun':'June','Jul':'July','Aug':'August','Sep':'September','Oct':'October','Nov':'November','Dec':'December'}
+    numbers = {'decims':['twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'],'units':['one','two','three','four','five','six','seven','eight','nine']}
+    array_isdigit = lambda ar: (len(ar) == 1 and ar[0].isdigit()) or (len(ar) > 1 and (ar[0].isdigit() or array_isdigit(ar[1:])))
+    for word in words:
+        neighbourhood = words[max(0,i-4):min(i+4,len(words))]
+        # splitting two-digit words
+        if word.split('-')[0].lower() in numbers['decims'] and word.split('-')[1].lower() in numbers['units']: return word.split('-').join(' ')
+        if (word == "#" or word == u"№") and i+1<len(words) and words[i+1].isdigit():
+            words = words[:i]+[word+words[i+1]]+words[i+2:] # merging #1/№3
+        # fixing time representation
+        if word in ['p.m.','a.m.','P.M.','A.M.','GMT','UTC'] and words[i-1] == "00" and words[i-2]==":" and words[i-3].isdigit():
+            words = words[:i-1]+words[i:] # 4:00 a.m. sounds like 4 a.m.
+            i-=1
+        if word in ['p.m.','a.m.','P.M.','A.M.','GMT','UTC','PM','pm','AM','am'] and re.match("(\d{1,2})\.(\d{2})",words[i-1]):
+            matches = re.match("(\d{1,2})\.(\d{2})",words[i-1])
+            words = words[:i-1]+[matches.group(1)]+[matches.group(2)]+words[i+1:]
+            i+=1
+        # expanding months and days of week
+        if (word in days_of_week or word.endswith('.') and word[:-1] in days_of_week) and array_isdigit(neighbourhood):
+            if word.endswith('.'):words[i] = days_of_week[word[:-1]]
+            else: words[i] = days_of_week[word]
+        if (word in months or word.endswith('.') and word[:-1] in months) and array_isdigit(neighbourhood):
+            if word.endswith('.'): words[i] = months[word[:-1]]
+            else: words[i] = months[word]
+        i+=1
+    #print words; quit()
+    return words
+
+def garbage_stats(words):
+    digit_num,word_num = 0,0
+    for word in words:
+        if re.search("\d",word):
+            digit_num+=1
+        elif re.search(re.compile("\w",re.UNICODE),word):
+            word_num+=1
+    if word_num == 0: return 1
+    return float(digit_num/word_num)
+
+def typographics(sentence):
+    sentence = re.sub(re.compile(u"[`’']",re.UNICODE),u"'",sentence)
+    sentence = re.sub(re.compile(u"[’‘’„“«»”]",re.UNICODE),u'"',sentence)
+    sentence = re.sub(re.compile(u"[‒]",re.UNICODE),u'–',sentence) # figure dash -> ndash
+    sentence = re.sub(re.compile(u"[―]",re.UNICODE),u'—',sentence) # horizontal bar -> mdash
+    sentence = re.sub(re.compile(u"[−–‐]",re.UNICODE),u'-',sentence) # only minus sign, only hyphen -> common hyphen-minus
+    sentence = re.sub(re.compile(u"(\s?\.){3}",re.UNICODE),u'...',sentence) # ellipsis
+    return sentence
 
 # processing script arguments
 import sys
@@ -80,6 +164,10 @@ arguments = sys.argv
 lang = arguments[1] # en|ru|fr...
 path_in = arguments[2] # '/home/soshial/text-normalization/in/'
 path_out = arguments[3] # '/home/soshial/text-normalization/out/'
+import ConfigParser
+config = ConfigParser.RawConfigParser()
+config.read('normalization.cfg')
+import re,regex
 
 # initializing logging
 import logging
@@ -94,33 +182,57 @@ logger.setLevel(logging.INFO)
 # NB! nltk.download() # для работы программы необходимо при первом запуске раскомментировать строку и скачать модуль punkt tokenizer models # todo add to readme
 from nltk.tokenize import *
 import nltk.data as nltk_data
-exec("import num_"+lang+" as num; numw = num.Num"+lang.title()+"(lang,logger)")
+exec("import num_"+lang+" as num; numw = num.Num"+lang.title()+"(lang,logger)") # import num_ru as num; numw = num.NumRu(lang,logger)
 sent_detector = nltk_data.load('tokenizers/punkt/english.pickle')
 dictionary,principal_words,other_words = init_dic(lang)
 
 # working with files
 import glob, os, codecs
 
-import  re#, time
-#wait = 0.01
-# todo cut in the end of file <span> </>
 # main loop
 while True:
     for fullpath_inmeta in glob.glob( os.path.join(path_in, '*.meta') ):
         # file_in - input file, file_in2 - copy of input file, file_out - output file
         filename_intxt = fullpath_inmeta.split('/')[-1].split('.')[-2] + '.txt'
+        print "processing",filename_intxt
         logger.info('processing ' + path_in + filename_intxt)
         file_intxt = codecs.open( path_in + filename_intxt, "r", "utf-8" )
-        text_in = file_intxt.read() # variable @file_intxt with our text to process
+        text_in = typographics(file_intxt.read()) # variable @file_intxt with our text to process
+        if lang == "ru": # just adding all ru files to the 'file.list' for AOT to process
+            file_list = codecs.open(config.get('lms','aot_path') + "file.list", 'w+', 'utf-8-sig').write(filename_intxt+"\n").close()
         file_outtxt = codecs.open(path_out + filename_intxt, 'w', 'utf-8-sig') # output file as ./out/_____.out
         sentences = sent_detector.tokenize(text_in)
         for sentence_in in sentences:
-            sentence_out = ''; omit = False; i = 0;
-            words = PunktWordTokenizer().tokenize(sentence_in[:-1])
+            sentence_out = ''; omit = False; i = 0
+            if re.search(u"[/|]",sentence_in): omit = True
+            # omitting the part of phrase that is considered as play/transcripts characters (MICHELE: ...)
+            # has : AND start is all upper OR is title AND first character after : is big
+            if regex.search(":",sentence_in) and (sentence_in.split(':')[0].isupper() or sentence_in.split(':')[0].istitle()) and sentence_in.split(':')[1].strip()[0].isupper():
+                sentence_in = ':'.join(sentence_in.split(':')[1:])
+            if regex.search(u"\p{L}{2,}[\.?!…]\p{L}{2,}",sentence_in):
+                omit = True
+                print "omitted because of the dot!"
+                logger.info('Dot inside the word problem with sentence:\n____'+sentence_in)
+                continue
+            words = PunktWordTokenizer().tokenize(sentence_in)
+            if words[-1].endswith('.'): words[-1]=words[-1][:-1] # removing dot in the end of the phrase
+            try:
+                words = omit_brackets(words) # we don't need anything placed in brackets - it worsens LM
+                words = abridgement_fix(words)
+                words = restore_apostrophes(words,sentence_in) # word tokenizer designedly moves apart words with apostrophes inside them - we try fix this
+            except Exception,ExText:
+                logger.info('Preprocessing exception: '+unicode(ExText))
+            if len(words) == 0:
+                omit = True
+            # garbage concentration
+            if garbage_stats(words) > 1/3:
+                omit = True
+                logger.info('Garbage problem with sentence:\n____'+sentence_in)
+                continue
             for word in words:
                 if re.search("\d",word): # if numbers are not present then we just return the string back
                     try:
-                        if i-1>0 and words[i-1] == "-": word = numw.check_and_convert_into_number("-"+word)
+                        if i-1>0 and words[i-1] == "-": word = numw.check_and_convert_into_number("-"+word) # merging for negative numbers
                         else: word = numw.check_and_convert_into_number(word)
                     except StandardError, error_message:
                         omit = True
@@ -128,45 +240,22 @@ while True:
                         continue
                 if omit: break; # if something happens while converting, we should omit the sentence
                 if re.search(re.compile("\w",re.UNICODE),unicode(word)):
-                    temp_word = dictionary_check(word)
+                    temp_word = dictionary_check(word).upper()
                     sentence_out += temp_word + ' '
                 i += 1
             if not omit:
                 sentence_out = re.sub(re.compile("[^\w. '-]",re.UNICODE),"",sentence_out) # todo \p{L} is not yet supported by Python 2.7.2
-                sentence_out = re.sub(" ('s|'ve|'d|'re|'ll|'t)","\\1",sentence_out) # todo make adequate! 's 've 'd should be tokenized with the word
                 file_outtxt.write(sentence_out.strip() + "\n")
         file_outtxt.close()
         os.remove(fullpath_inmeta) # removing ./in/_____.meta for the loop not to process it again
-        #os.remove(path_in + filename_intxt) # removing original ./in/_____.txt
-        # processing normalization for russian
-        if lang == "ru":
-            import subprocess
-            subprocess.call(['php ./normalizer_ru.php',])
-            post_aot = codecs.open(path_in + filename_intxt, "r", "cp1251").read()
-
+        os.remove(path_in + filename_intxt) # removing original ./in/_____.txt
         file_meta = codecs.open(path_out + fullpath_inmeta.split('/')[-1], 'w', 'utf-8') # creating ./out/_____.meta
         file_meta.close()
     #time.sleep(wait)
 
-
+# canonicalization:
+# "co-operation" → "cooperation", "valour" → "valor", "should've" → "should have" / redis?
 #
-
-#tokenization
-#nltk.sentence_tokenize
-#nltk.word_tokenize
-
-#text case normalization
-#text='aiUOd'
-#print text.lower()
-#print text.upper()
-
-#canonicalization: "co-operation" → "cooperation", "valour" → "valor", "should've" → "should have" / redis?
-
-#punctuation removal
-#puncts='.?!'
-#for sym in puncts:
-#    text= text.replace(sym,' ')
-
 # NER
 # tagger = nltk.data.load('chunkers/maxent_ne_chunker/english_ace.pickle')
 # tagger.parse([('Guido', 'NNP'), ('lives', 'NNS'), ('in', 'IN'), ('Seattle', 'NNP')] )
