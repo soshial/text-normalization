@@ -55,7 +55,7 @@ class NumRu(num_base.NumBase):
         else: return self.numword._split(number, hightxt=percent[power],split_precision=0)
 
     def short_endings(self,str):
-        pass
+        return str
 
     def complex_endings(self,str,number):
         self.numword.inflection_case = u"рд"

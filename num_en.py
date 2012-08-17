@@ -35,7 +35,7 @@ class NumEn(num_base.NumBase):
             self.logger.info("OTHER!!!_with", str)
 
     def short_endings(self,str):
-        pass
+        return str
 
     def complex_endings(self,str,number):
         return unicode(self.numword.cardinal(number))+re.sub("\d","",str)

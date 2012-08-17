@@ -58,7 +58,9 @@ class NumBase(object):
         # todo 40x200
         # todo 6’2″
         self.numword.inflection_case = u"им"
-        if re.search("^-?\d+(\.|,)?\d*$",str): return self.numword.cardinal(canonical_number) # usual number
+        if re.search("^-?\d+(\.|,)?\d*$",str):
+            if 1800 < canonical_number < 2000: return self.numword.year(canonical_number) # a year
+            else: return self.numword.cardinal(canonical_number) # usual number
         elif re.search("^\d{4}-\d{2,4}$",str): # "1982-(19)95" -> "from 1982 to 1995"
             def daterepl(matchobj):
                 try:
@@ -82,13 +84,12 @@ class NumBase(object):
             return self.decades[str]
         elif re.search(u"^[#№]\d+$",str):
             return self.number+" "+self.numword.cardinal(canonical_number)
-        elif re.search("^[$¢€£]-?\d+(\.|,)?\d*$",str):
+        elif re.search("^[$¢€£]-?\d+(\.|,)?\d*$",str): # currencies
             return self.numword.currency(canonical_number)
         elif re.search("^[IVXLCM]{2,}$",str): # roman numerals
             #print "#4"
             return self.numword.cardinal(self.roman_to_int(str))
-        elif re.search(u"^-?\d+(°|°?C|°?F)$",str):
-            #print "@1",str,re.sub("[^\d-]","",str)
+        elif re.search(u"^-?\d+(°|°?C|°?F)$",str): # temperature
             return self.temperature(long(re.sub("[^\d-]","",str)))
         elif re.search("^-?\d+(\.|,)?\d*.$",str):
             #print "#5"
@@ -100,7 +101,7 @@ class NumBase(object):
             elif str.endswith(u"‱"): return self.percentage(canonical_number,2)
             elif str.endswith(u"+"): return self.plus.split("/")[0] + " " + self.numword.cardinal(canonical_number) + " " + self.plus.split("/")[1]
             elif str.endswith(u"x"): return self.numword.cardinal(canonical_number) + u" times"
-            else: self.short_endings(str)
+            else: return self.numword.cardinal(canonical_number) # should return self.numword.cardinal(self.short_endings(str))
         elif not self.ordinals(str) is False: # 21st, 9th, 1092nd
             #print "#6"
             return self.ordinals(str)
@@ -153,7 +154,7 @@ class NumBase(object):
         pass
 
     def short_endings(self,str):
-        pass
+        return str
 
     def complex_endings(self,str,number):
         pass
