@@ -114,11 +114,20 @@ class NumWordEN(NumWordBase):
     def year(self, value, longval=True):
         """Convert number into year"""
         self._verify_ordinal(value)
-        if not (value//100)%10: # years like 1066 or 2011 are treated as cardinal
-            return self.cardinal(value)
-        elif 1700 <= value <= 2050: # years in these borders are usually spelled without joining words
+        century = value // 100
+        decades = value % 100
+        if 0 < value < 1000 or 2099 < value < 3000: # 2177 -> two thousand and twelve; 711 -> seven hundred eleven
+            return self._split(value, hightxt=u"hundred", jointxt=u"and", longval=longval)
+        if century < 20: # 1145 -> eleven forty-five
+            if decades < 10: # years like 1406 or 2108 should be said as 'forteen o six'
+                return self._split(value, hightxt=u"", jointxt=u"o", longval=longval)
+            else:
+                return self._split(value, hightxt=u"", jointxt=u"", longval=longval)
+        else:
+            self.cardinal(value)
+        if 0 < value < 10000:
             return self._split(value, hightxt=u"", jointxt=u"", longval=longval)
-        return self._split(value, hightxt=u"hundred", jointxt=u"and", longval=longval)
+        return self.cardinal(value)
 
     def currency(self, value, longval=True):
         temp_precision, self.precision = self.precision, 2

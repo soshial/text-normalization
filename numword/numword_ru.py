@@ -18,7 +18,11 @@ class NumWordRU(NumWordBase):
         super(NumWordRU,self).__init__()
         # initializing morphology module for inflecting
         from pymorphy import get_morph
-        import os; dicts_folder = "./dicts/converted/ru/"
+        import ConfigParser
+        config = ConfigParser.RawConfigParser()
+        config.read('/home/soshial/text-normalization/normalization.cfg')
+        dicts_folder = config.get('lms','dicts')
+        import os
         if not os.path.exists(dicts_folder): quit('Please put existing dictionaries into "'+dicts_folder+'" folder!')
         self.morph = get_morph(dicts_folder)
         self.inflection_case = u"им" # todo add gender for the ending of numeral ('жр')

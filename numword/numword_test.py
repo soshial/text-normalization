@@ -79,7 +79,18 @@ class NumwordTestCase(unittest.TestCase):
                  u"Trillionen vierhundertachtundneunzig Billiarden fünfhundertvieru"
                  u"ndsiebzig Billionen dreihundertsechsunddreißig Milliarden"],
                 ],
-            'en':[],
+            'en':[
+                [0,u'zero'],
+                [4,u'four'],
+                [12,u'twelve'],
+                [-45,u'minus forty-five'],
+                [-2.12,u'minus two point twelve'],
+                [-19.98,u'minus nineteen point ninety-eight'],
+                [5.980,u'five point ninety-eight'],
+                [22000001,u'twenty-two million and one'],
+                [399670900,u'three hundred and ninety-nine million, six hundred and seventy thousand, nine hundred'],
+                [90311671002,u'ninety billion, three hundred and eleven million, six hundred and seventy-one thousand and two'],
+            ],
             'es':[],
             'fr':[],
             'pl':[],
@@ -88,25 +99,25 @@ class NumwordTestCase(unittest.TestCase):
                 [4,u'четыре'],
                 [12,u'двенадцать'],
                 [21,u'двадцать один'],
-                [31,u'тридцать один'],
                 [33,u'тридцать три'],
                 [71,u'семьдесят один'],
-                [80,u'восемьдесят'],
+                [-80,u'минус восемьдесят'],
                 [81,u'восемьдесят один'],
                 [91,u'девяносто один'],
                 [99,u'девяносто девять'],
                 [100,u'сто'],
                 [101,u'сто один'],
                 [102,u'сто два'],
+                [113,u'сто тринадцать'],
                 [120,u'сто двадцать'],
                 [155,u'сто пятьдесят пять'],
-                [180,u'сто восемьдесят'],
+                [280,u'двести восемьдесят'],
                 [300,u'триста'],
                 [308,u'триста восемь'],
                 [832,u'восемьсот тридцать два'],
                 [1000,u'тысяча'],
                 [1001,u'тысяча один'],
-                [1061,u'тысяча шестьдесят один'],
+                [1065,u'тысяча шестьдесят пять'],
                 [1100,u'тысяча сто'],
                 [1120,u'тысяча сто двадцать'],
                 [1500,u'тысяча пятьсот'],
@@ -315,7 +326,7 @@ if __name__ == '__main__':
     arguments = sys.argv
     if len(arguments) < 2: quit("Please specify the language as a parameter!")
     language = arguments[1]'''
-    language = 'ru'
+    language = 'en'
     if language == 'de': import numword_de as numword
     elif language == 'en': import numword_en as numword
     elif language == 'es': import numword_es as numword
