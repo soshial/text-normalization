@@ -179,6 +179,7 @@ arguments = sys.argv
 lang = arguments[1] # en|ru|fr...
 path_in = arguments[2] # '/home/soshial/text-normalization/in/'
 path_out = arguments[3] # '/home/soshial/text-normalization/out/'
+do_logging = True
 import ConfigParser
 config = ConfigParser.RawConfigParser()
 config.read('/home/soshial/text-normalization/normalization.cfg')
@@ -199,7 +200,7 @@ from nltk.tokenize import *
 import nltk.data as nltk_data
 exec("import num_"+lang+" as num; numw = num.Num"+lang.title()+"(lang,logger)") # import num_ru as num; numw = num.NumRu(lang,logger)
 sent_detector = nltk_data.load('tokenizers/punkt/english.pickle')
-dictionary,principal_words,other_words = init_dic(lang)
+if lang == "en": dictionary,principal_words,other_words = init_dic(lang)
 
 # working with files
 import glob, os, codecs, time
@@ -222,6 +223,7 @@ while True:
         file_outtxt = codecs.open(path_out + filename_intxt, 'w', 'utf-8-sig') # output file as ./out/_____.out
         sentences = sent_detector.tokenize(text_in)
         for sentence_in in sentences:
+            if do_logging: print sentence_in
             sentence_out = ''; omit = False; i = 0; words = []
             try:
                 if re.search(u"[/|]",sentence_in): omit = True
@@ -250,13 +252,18 @@ while True:
                 logger.info('Preprocessing exception: '+unicode(ExText))
             for word in words:
                 if re.search("\d",word): # if numbers are not present then we just return the string back
+                    # getting neighbour words
+                    d = 1
+                    neighbours_left = words[max(0,i-d):i]
+                    neighbours_right = words[i+1:min(i+d,len(words))+1]
+                    if i-1>=0 and words[i-1] == "-": word = "-" + word; neighbours_left = words[max(0,i-d-1):i-1] # negative numbers
                     try:
-                        if i-1>=0 and words[i-1] == "-": word = numw.check_and_convert_into_number("-"+word) # merging for negative numbers
-                        else: word = numw.check_and_convert_into_number(word)
+                        word = numw.check_and_convert_into_number(word,{"left":neighbours_left,"right":neighbours_right})
                         word = split_twodigits(word)
                     except StandardError, error_message:
                         omit = True
                         logger.info('Problem with : ' + unicode(error_message) +' // word: '+ unicode(word))
+                        #print "###################################     Hey! Problem with : " + unicode(error_message) +' // word: '+ unicode(word)
                         continue
                 if omit: break; # if something happens while converting, we should omit the sentence
                 if re.search(re.compile("\w",re.UNICODE),unicode(word)):
@@ -265,7 +272,11 @@ while True:
                 i += 1
             if not omit:
                 sentence_out = re.sub(re.compile("[^\w. '-]",re.UNICODE),"",sentence_out) # todo \p{L} is not yet supported by Python 2.7.2
+                if do_logging: print sentence_out
                 file_outtxt.write(sentence_out.strip() + "\n")
+            else:
+                if do_logging: print "    missed"
+            if do_logging: print
         file_outtxt.close()
         os.remove(fullpath_inmeta) # removing ./in/_____.meta for the loop not to process it again
         #os.remove(path_in + filename_intxt) # removing original ./in/_____.txt
