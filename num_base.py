@@ -4,7 +4,10 @@ __author__ = 'soshial'
 import re
 
 class NumBase(object):
+    language = None
+
     def __init__(self,language,logger):
+        self.language = language
         # setting right numword classes
         if language == 'de': from numword import numword_de; self.numword = numword_de.NumWordDE()
         elif language == 'en': from numword import numword_en; self.numword = numword_en.NumWordEN()
@@ -23,8 +26,7 @@ class NumBase(object):
         self.plus = None
         self.degree= None
         self.number= None
-
-
+        self.months = None
 
     def get_canonical_number_from_string(self,clean_number_string):
         """Converting @str into float or long number"""
@@ -36,7 +38,7 @@ class NumBase(object):
         else:
             raise ValueError
 
-    def check_and_convert_into_number(self,str):
+    def check_and_convert_into_number(self,str,details):
         """This function checks the string for being number and returns spelled numeral in a string"""
         if not re.search("\d",str): # if numbers are not present then we just return the string back
             return str
@@ -52,15 +54,28 @@ class NumBase(object):
             raise StandardError
         # main processing of the word
         # usual/currency/year/temperature/time
-        # todo currency $¢€£ 50¢
         # todo 40-40 - счёт?
         # todo 1700s
         # todo 40x200
         # todo 6’2″
-        self.numword.inflection_case = u"им"
-        if re.search("^-?\d+(\.|,)?\d*$",str):
+        type = "-"
+        if self.language == 'ru':
+            gr_case,gr_num,gr_gend,type = self.detect_inflection(details)
+            #print "@___слово:",str,repr(details).decode("unicode-escape"),"  // ",repr(gr_case).decode("unicode-escape"),repr(gr_gend).decode("unicode-escape"),repr(gr_num).decode("unicode-escape"),type
+            if len(gr_case):
+                if type == 'ord':
+                    self.numword.inflection_case = gr_case.pop() + u"," + gr_num.pop() + u"," + gr_gend.pop()
+                else:
+                    self.numword.inflection_case = gr_case.pop()
+            else: self.numword.inflection_case = u"им"
+            #print self.numword.inflection_case
+        if re.search("^\d+$",str): # simplest natural number
             if 1800 < canonical_number < 2000: return self.numword.year(canonical_number) # a year
+            elif type == "ord" or self.is_date_near(details):
+                return self.numword.ordinal(canonical_number) # the 1 of March -> the first of March
             else: return self.numword.cardinal(canonical_number) # usual number
+        elif re.search("^-?\d+(\.|,)?\d*$",str):
+            return self.numword.cardinal(canonical_number) # usual number
         elif re.search("^\d{4}-\d{2,4}$",str): # "1982-(19)95" -> "from 1982 to 1995"
             def daterepl(matchobj):
                 try:
@@ -157,4 +172,10 @@ class NumBase(object):
         return str
 
     def complex_endings(self,str,number):
+        pass
+
+    def detect_inflection(self,details):
+        pass
+
+    def is_date_near(self,details):
         pass
