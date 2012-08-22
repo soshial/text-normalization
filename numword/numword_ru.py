@@ -187,11 +187,7 @@ class NumWordRU(NumWordBase):
     def year(self, value, longval=True):
         """Convert number into year"""
         self._verify_ordinal(value)
-        if not (value//100)%10: # years like 1066 or 2011 are treated as cardinal
-            return self.cardinal(value)
-        elif 1700 <= value <= 2050: # years in these borders are usually spelled without joining words
-            return self._split(value, hightxt=u"", jointxt=u"", longval=longval)
-        return self._split(value, hightxt=u"hundred", jointxt=u"and", longval=longval)
+        return self.ordinal(value)
 
     def currency(self, value, longval=True):
         temp_precision, self.precision = self.precision, 2
@@ -211,7 +207,7 @@ class NumWordRU(NumWordBase):
         gr_gender = {u'мр',u'жр',u'ср'}
         gr_number = {u'ед',u'мн'}
         gr_declin = {u'им',u'рд',u'дт',u'вн',u'тв',u'пр',u'зв',u'пр2',u'рд2'}
-        if self.inflection_case == u"им":
+        if self.inflection_case == u"им" or self.inflection_case == u"вн":
             if value < sec_numb:
                 # numerals take @gr_gender from thousands, millions etc. (@sec_text)
                 intersection = ",".join(list(gr_gender & # here we compute intersection between @gr_gender and set of grammar info of secondary
@@ -226,7 +222,7 @@ class NumWordRU(NumWordBase):
                 if 11<= sec_numb % 100 <= 19 or 5 <= sec_numb % 10 or sec_numb % 10 == 0:
                     return self.morph.inflect_ru(text.upper(), u"рд,мн").lower() # [5...9], [11...19], [20,30...] миллион_ов_
                 elif sec_numb % 10 == 1:
-                    return self.morph.inflect_ru(text.upper(), u"им,ед").lower() # 1 миллион__
+                    return self.morph.inflect_ru(text.upper(), self.inflection_case + u",ед").lower() # 1 миллион__
                 elif 2 <= (sec_numb % 10) <= 4:
                     return self.morph.inflect_ru(text.upper(), u"рд,ед").lower() # 3 миллион_а_
                 else: quit('DIEEEE!! #1')
