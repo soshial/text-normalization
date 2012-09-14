@@ -182,7 +182,7 @@ path_out = arguments[3] # '/home/soshial/text-normalization/out/'
 do_logging = True
 import ConfigParser
 config = ConfigParser.RawConfigParser()
-config.read('/home/soshial/text-normalization/normalization.cfg')
+config.read('normalization.cfg')
 import re,regex
 
 # initializing logging
@@ -204,7 +204,7 @@ if lang == "en": dictionary,principal_words,other_words = init_dic(lang)
 
 # working with files
 import glob, os, codecs, time
-
+#year = False
 # main loop
 while True:
     if glob.glob( os.path.join(path_in, '*.meta') ) == []: time.sleep(1); print "sleep" # if no files in a folder then sleep for a second
@@ -251,6 +251,7 @@ while True:
             except Exception,ExText:
                 logger.info('Preprocessing exception: '+unicode(ExText))
             for word in words:
+                word = word.translate(['|*',''])
                 if re.search("\d",word): # if numbers are not present then we just return the string back
                     # getting neighbour words
                     d = 1
@@ -259,7 +260,8 @@ while True:
                     if i-1>=0 and words[i-1] == "-": word = "-" + word; neighbours_left = words[max(0,i-d-1):i-1] # negative numbers
                     try:
                         word = numw.check_and_convert_into_number(word,{"left":neighbours_left,"right":neighbours_right})
-                        word = split_twodigits(word)
+                        if lang == 'en': word = split_twodigits(word)
+                        #if lang == 'ru': word = u"* " + word + u" *"
                     except StandardError, error_message:
                         omit = True
                         logger.info('Problem with : ' + unicode(error_message) +' // word: '+ unicode(word))
@@ -268,16 +270,22 @@ while True:
                 if omit: break; # if something happens while converting, we should omit the sentence
                 if re.search(re.compile("\w",re.UNICODE),unicode(word)):
                     if lang == 'en': word = dictionary_check(word)
+                    #if lang == 'ru' and word in {u'г.',u'Г.',u'гг.',u'ГГ.'}: year = True
                     sentence_out += word.upper() + ' '
                 i += 1
             if not omit:
-                sentence_out = re.sub(re.compile("[^\w. '-]",re.UNICODE),"",sentence_out) # todo \p{L} is not yet supported by Python 2.7.2
+                sentence_out = regex.sub(u"[^\p{L}. *'-]","",sentence_out)
+                #if lang == 'ru' and year == True:
+                #    sentence_out = regex.sub(u" г\.| Г\.",u" ГОДУ|ГОД|ГОДА|ГОДОМ|ГОДЕ",sentence_out)
+                #    sentence_out = regex.sub(u" гг\.| ГГ\.",u" ГОДЫ|ГОДОВ|ЛЕТ|ГОДАМ|ГОДАХ|ГОДАМИ",sentence_out)
+                #    year = False
                 if do_logging: print sentence_out
                 file_outtxt.write(sentence_out.strip() + "\n")
             else:
                 if do_logging: print "    missed"
             if do_logging: print
         file_outtxt.close()
+        quit()
         os.remove(fullpath_inmeta) # removing ./in/_____.meta for the loop not to process it again
         #os.remove(path_in + filename_intxt) # removing original ./in/_____.txt
         file_meta = codecs.open(path_out + fullpath_inmeta.split('/')[-1], 'w', 'utf-8') # creating ./out/_____.meta

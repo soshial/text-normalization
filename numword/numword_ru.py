@@ -20,7 +20,7 @@ class NumWordRU(NumWordBase):
         from pymorphy import get_morph
         import ConfigParser
         config = ConfigParser.RawConfigParser()
-        config.read('/home/soshial/text-normalization/normalization.cfg')
+        config.read('normalization.cfg')
         dicts_folder = config.get('lms','dicts')
         import os
         if not os.path.exists(dicts_folder): quit('Please put existing dictionaries into "'+dicts_folder+'" folder!')
@@ -161,7 +161,6 @@ class NumWordRU(NumWordBase):
                 second = wo_zeros % 1000 # 250
                 zeroes = long(value / wo_zeros) # 1 000 000
                 lastword = re.sub(u'(иллион|ллиард|ысяч)(ов|а|и)?$',u'\\1ный',lastword)
-                print lastword, first * zeroes * 1000, second
                 if second != 1:
                     outwords2_str = u""
                     temp_inflection = self.inflection_case
@@ -202,7 +201,6 @@ class NumWordRU(NumWordBase):
             return super(NumWordRU,self)._inflect(value, text)
         elif secondary == 0: # initial inflecting of all numbers
             return self.morph.inflect_ru(text.upper(), self.inflection_case).lower()
-        #print 'text   ',text
         sec_text, sec_numb = secondary
         gr_gender = {u'мр',u'жр',u'ср'}
         gr_number = {u'ед',u'мн'}
@@ -213,7 +211,6 @@ class NumWordRU(NumWordBase):
                 intersection = ",".join(list(gr_gender & # here we compute intersection between @gr_gender and set of grammar info of secondary
                                              set(self.morph.get_graminfo(sec_text.upper())[0]['info'].split(',')))) # and return the string again
                 if intersection == '':
-                    #print "### intersection void: ",value,sec_text,"___",self.morph.get_graminfo(sec_text.upper())[0]['info'];quit()
                     return self.morph.inflect_ru(text.upper(),self.morph.get_graminfo(sec_text.upper())[0]['info']).lower()
                 else:
                     return self.morph.inflect_ru(text.upper(), intersection).lower()
@@ -244,7 +241,6 @@ class NumWordRU(NumWordBase):
                     #if sec_numb == 1000:
                 #print(self.morph.get_graminfo(u'ТРЕМЯ')[0]['info'])
                 #quit('!__'+self.morph.inflect_ru(u'ЧЕТЫРЕ', u'пр'))
-                print '__0:',text.upper(), self.inflection_case, self.morph.inflect_ru(text.upper(), self.inflection_case)
                 return self.morph.inflect_ru(text.upper(), self.inflection_case).lower()# + ',' + intersection).lower()
                 #return self.morph.inflect_ru(text.upper(), re.sub(u"(ед)|(мн)","",self.morph.get_graminfo(sec_text.upper())[0]['info'])).lower()
             if value < sec_numb:

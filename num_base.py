@@ -59,15 +59,15 @@ class NumBase(object):
         # todo 40x200
         # todo 6’2″
         type = "-"
-        if self.language == 'ru':
-            gr_case,gr_num,gr_gend,type = self.detect_inflection(details)
-            #print "@___слово:",str,repr(details).decode("unicode-escape"),"  // ",repr(gr_case).decode("unicode-escape"),repr(gr_gend).decode("unicode-escape"),repr(gr_num).decode("unicode-escape"),type
-            if len(gr_case):
-                if type == 'ord':
-                    self.numword.inflection_case = gr_case.pop() + u"," + gr_num.pop() + u"," + gr_gend.pop()
-                else:
-                    self.numword.inflection_case = gr_case.pop()
-            else: self.numword.inflection_case = u"им"
+#        if self.language == 'ru':
+#            gr_case,gr_num,gr_gend,type = self.detect_inflection(details)
+#            #print "@___слово:",str,repr(details).decode("unicode-escape"),"  // ",repr(gr_case).decode("unicode-escape"),repr(gr_gend).decode("unicode-escape"),repr(gr_num).decode("unicode-escape"),type
+#            if len(gr_case):
+#                if type == 'ord':
+#                    self.numword.inflection_case = gr_case.pop() + u"," + gr_num.pop() + u"," + gr_gend.pop()
+#                else:
+#                    self.numword.inflection_case = gr_case.pop()
+#            else: self.numword.inflection_case = u"им"
             #print self.numword.inflection_case
         if re.search("^\d+$",str): # simplest natural number
             if 1800 < canonical_number < 2000: return self.numword.year(canonical_number) # a year
